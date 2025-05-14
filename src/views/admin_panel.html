@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Админ-панель Telegram бота</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js "></script>
+    <style>
+        /* Вставляем весь CSS из вашего файла */
+        :root {
+            --primary-color: #4CAF50;
+            --danger-color: #f44336;
+            --info-color: #2196F3;
+            --dark-color: #333;
+            --light-color: #f5f5f5;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--light-color);
+            color: var(--dark-color);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: var(--dark-color);
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #ddd;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #666;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn:hover {
+            color: var(--primary-color);
+        }
+
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .action-buttons {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-info {
+            background-color: var(--info-color);
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        th,
+        td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #444;
+        }
+
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .badge-success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .badge-danger {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Стили для таблицы подписок */
+        #subscriptions-list td {
+            vertical-align: middle;
+            padding: 12px 15px;
+        }
+
+        #subscriptions-list strong {
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Стили для модального окна */
+        .modal-content h2 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, .3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        #edit-subscription-form h3 {
+            margin-top: 20px;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        #subscriptions-list td {
+            vertical-align: top;
+            padding: 12px 15px;
+        }
+
+        #subscriptions-list strong {
+            color: #555;
+        }
+
+        .alert-success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+
+        .alert-error {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+
+        .form-control {
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            th,
+            td {
+                padding: 10px 12px;
+                font-size: 14px;
+            }
+
+            .tab-btn {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+
+            .btn-secondary {
+                background-color: #6c757d;
+                color: white;
+            }
+
+            .btn-secondary:hover {
+                background-color: #5a6268;
+                color: white;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Административная панель Telegram бота</h1>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="users">Пользователи</button>
+            <button class="tab-btn" data-tab="merchants">Мерчанты</button>
+            <button class="tab-btn" data-tab="subscriptions">Подписки</button>
+            <button class="tab-btn" data-tab="salary">Зарплатные дни</button>
+        </div>
+
+        <!-- Users Tab -->
+        <div id="users" class="tab-content active">
+            <div class="action-buttons">
+                <!-- В разделе Users Tab -->
+                <button class="btn btn-primary" onclick="toggleUsersTable()">
+                    <span id="users-loading" class="loading" style="display: none;"></span>
+                    Показать пользователей
+                </button>
+            </div>
+
+            <div id="users-alert" class="alert"></div>
+
+            <div id="users-table" style="display: none;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Баланс</th>
+                            <th>ICE</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-list"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Merchants Tab -->
+        <div id="merchants" class="tab-content">
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="loadMerchants()">
+                    <span id="merchants-loading" class="loading" style="display: none;"></span>
+                    Показать мерчантов
+                </button>
+                <button class="btn btn-info" onclick="showAddMerchantModal()">
+                    Добавить мерчанта
+                </button>
+            </div>
+
+            <div id="merchants-alert" class="alert"></div>
+
+            <div id="merchants-table" style="display: none;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Имя мерчанта</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="merchants-list"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Subscriptions Tab -->
+        <div id="subscriptions" class="tab-content">
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="loadSubscriptions()">
+                    <span id="subscriptions-loading" class="loading" style="display: none;"></span>
+                    Показать подписки
+                </button>
+            </div>
+
+            <div id="subscriptions-alert" class="alert"></div>
+
+            <div id="subscriptions-table" style="display: none;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Название</th>
+                            <th>Цена</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="subscriptions-list"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Salary Tab -->
+        <div id="salary" class="tab-content">
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="loadSalaryDays()">
+                    <span id="salary-loading" class="loading" style="display: none;"></span>
+                    Показать зарплатные дни
+                </button>
+            </div>
+
+            <div id="salary-alert" class="alert"></div>
+
+            <div id="salary-table" style="display: none;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID пользователя</th>
+                            <th>Зарплатный день</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salary-list"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Merchant Modal -->
+    <div id="add-merchant-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="hideAddMerchantModal()">&times;</span>
+            <h2>Добавить нового мерчанта</h2>
+            <div id="merchant-form-alert" class="alert"></div>
+            <form id="add-merchant-form">
+                <div class="form-group">
+                    <label for="merchant-name">Имя мерчанта:</label>
+                    <input type="text" id="merchant-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">
+                        <span id="merchant-submit-loading" class="loading" style="display: none;"></span>
+                        Создать мерчанта </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Subscription Modal -->
+    <div id="edit-subscription-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="hideEditSubscriptionModal()">&times;</span>
+            <h2>Изменить цены подписки</h2>
+            <div id="subscription-form-alert" class="alert"></div>
+            <div id="edit-subscription-form">
+                <input type="hidden" id="subscription-id"">
+
+                <div class=" form-group">
+                <label>Месячная подписка (RUB):</label>
+                <input type="number" id="monthly-price" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label>Годовая подписка (RUB):</label>
+                <input type="number" id="yearly-price" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <button type="button" class="btn btn-primary" onclick="handleUpdateSubscription()">
+                    <span id="subscription-submit-loading" class="loading"></span>
+                    Сохранить изменения
+                </button>
+                <button onclick="checkSubscriptionId()" style="position: fixed; top: 10px; left: 10px; z-index: 1000;">
+                    Проверить ID
+                </button>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+    <script>
+
+        // Добавьте в начало вашего script
+        function escapeJson(data) {
+            try {
+                return JSON.stringify(data || {}).replace(/"/g, '&quot;');
+            } catch (e) {
+                console.error('Error escaping JSON:', e);
+                return '{}';
+            }
+        }
+        const API_BASE_URL = window.location.origin;
+
+        // Current active tab
+        const appState = {
+            users: { loaded: false, data: [] },
+            merchants: { loaded: false, data: [] },
+            subscriptions: { loaded: false, data: [] },
+            salary: { loaded: false, data: [] }
+        };
+
+        let currentTab = 'users';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const tabId = this.getAttribute('data-tab');
+                    switchTab(tabId);
+                });
+            });
+            switchTab('users');
+        });
+
+        async function switchTab(tabId) {
+            currentTab = tabId;
+
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
+
+            if (!appState[tabId].loaded) {
+                await loadTabData(tabId);
+            }
+
+            renderTabData(tabId);
+        }
+
+        function renderTabData(tabId) {
+            switch (tabId) {
+                case 'users':
+                    renderUsers(appState.users.data);
+                    break;
+                case 'merchants':
+                    renderMerchants(appState.merchants.data);
+                    break;
+                case 'subscriptions':
+                    renderSubscriptions(appState.subscriptions.data);
+                    break;
+                case 'salary':
+                    renderSalaryDays(appState.salary.data);
+                    break;
+            }
+        }
+
+        function checkSubscriptionId() {
+            const id = document.getElementById('subscription-id').value;
+            alert(`Текущий ID подписки: ${id || 'не установлен'}`);
+        }
+        async function loadTabData(tabId) {
+            try {
+                let response;
+                switch (tabId) {
+                    case 'users':
+                        response = await axios.get('/api/users');
+                        appState.users.loaded = true;
+                        appState.users.data = response.data;
+                        break;
+                    case 'merchants':
+                        response = await axios.get('/api/merchants');
+                        appState.merchants.loaded = true;
+                        appState.merchants.data = response.data;
+                        break;
+                    case 'subscriptions':
+                        response = await axios.get('/api/subscriptions');
+                        appState.subscriptions.loaded = true;
+                        appState.subscriptions.data = response.data;
+                        break;
+                    case 'salary':
+                        response = await axios.get('/api/salary');
+                        appState.salary.loaded = true;
+                        appState.salary.data = response.data;
+                        break;
+                }
+            } catch (error) {
+                console.error(`Ошибка загрузки данных для ${tabId}:`, error);
+            }
+        }
+
+        // Глобальное состояние для управления таблицей пользователей
+        const userTableState = {
+            visible: false,
+            loaded: false,
+            data: []
+        };
+
+        async function toggleUsersTable() {
+            const table = document.getElementById('users-table');
+            const button = document.querySelector('#users .btn-primary');
+            const alertBox = document.getElementById('users-alert');
+
+            try {
+                // Если таблица уже видна — скрываем
+                if (userTableState.visible) {
+                    table.style.display = 'none';
+                    button.textContent = 'Показать пользователей';
+                    userTableState.visible = false;
+                    return;
+                }
+
+                // Если данные ещё не загружены — загружаем их
+                if (!userTableState.loaded) {
+                    showLoading('users-loading');
+                    alertBox.style.display = 'none';
+
+                    const response = await axios.get('/api/users');
+                    if (!Array.isArray(response.data)) {
+                        throw new Error('Неверный формат данных');
+                    }
+
+                    userTableState.data = response.data;
+                    userTableState.loaded = true;
+                    renderUsers(userTableState.data);
+                }
+
+                // Показываем таблицу
+                table.style.display = 'block';
+                button.textContent = 'Скрыть пользователей';
+                userTableState.visible = true;
+
+            } catch (error) {
+                console.error('Ошибка загрузки пользователей:', error);
+                alertBox.textContent = `Ошибка: ${error.response?.data?.error || error.message}`;
+                alertBox.className = 'alert alert-error';
+                alertBox.style.display = 'block';
+                table.style.display = 'none';
+                button.textContent = 'Показать пользователей';
+                userTableState.visible = false;
+            } finally {
+                hideLoading('users-loading');
+            }
+        }
+        function renderUsers(users) {
+            const tbody = document.getElementById('users-list');
+            tbody.innerHTML = '';
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+        <td data-id="${user.id}">${user.id}</td>
+        <td>${user.balance.toFixed(2)}</td>
+        <td>${user.ice.toFixed(2)}</td>
+        <td>
+          <span class="badge ${user.status === 1 ? 'badge-success' : 'badge-danger'}">
+            ${user.status === 1 ? 'Активен' : 'Заблокирован'}
+          </span>
+        </td>
+        <td>
+          ${user.status === 1
+                        ? `<button class="btn btn-danger" onclick="blockUser(${user.id})">Заблокировать</button>`
+                        : `<button class="btn btn-secondary" onclick="unblockUser(${user.id})">Разблокировать</button>`}
+        </td>`;
+                tbody.appendChild(row);
+            });
+        }
+
+        async function blockUser(userId) {
+            const alertBox = document.getElementById('users-alert');
+            const isConfirmed = confirm(`Вы уверены, что хотите заблокировать пользователя ${userId}?`);
+            if (!isConfirmed) return;
+
+            try {
+                const response = await axios.post(`/api/users/block/${userId}`);
+
+                const userIndex = appState.users.data.findIndex(u => u.id === userId);
+                if (userIndex !== -1) {
+                    appState.users.data[userIndex].status = 0;
+                }
+                const row = document.querySelector(`tr:has(td[data-id="${userId}"])`);
+                if (row) {
+                    row.querySelector('.badge').className = 'badge badge-danger';
+                    row.querySelector('.badge').textContent = 'Заблокирован';
+                    const btn = row.querySelector('button');
+                    btn.className = 'btn btn-secondary';
+                    btn.textContent = 'Разблокировать';
+                    btn.setAttribute('onclick', `unblockUser(${userId})`);
+                }
+
+
+            } catch (error) {
+                console.error('Block error:', error);
+                showAlert(alertBox, `Ошибка: ${error.response?.data?.error || error.message}`, 'error');
+            }
+
+
+
+        }
+
+        async function unblockUser(userId) {
+            const alertBox = document.getElementById('users-alert');
+
+            const isConfirmed = confirm(`Вы уверены, что хотите разблокировать пользователя ${userId}?`);
+            if (!isConfirmed) return;
+
+            try {
+                const response = await axios.post(`/api/users/unblock/${userId}`);
+
+                // Обновляем состояние
+                const userIndex = appState.users.data.findIndex(u => u.id === userId);
+                if (userIndex !== -1) {
+                    appState.users.data[userIndex].status = 1;
+                }
+
+                // Обновляем UI
+                const row = document.querySelector(`tr:has(td[data-id="${userId}"])`);
+                if (row) {
+                    row.querySelector('.badge').className = 'badge badge-success';
+                    row.querySelector('.badge').textContent = 'Активен';
+                    const btn = row.querySelector('button');
+                    btn.className = 'btn btn-danger';
+                    btn.textContent = 'Заблокировать';
+                    btn.setAttribute('onclick', `blockUser(${userId})`);
+                }
+
+
+            } catch (error) {
+                console.error('Unblock error:', error);
+                showAlert(alertBox, `Ошибка: ${error.response?.data?.error || error.message}`, 'error');
+            }
+        }
+
+        function showAlert(element, message, type = 'success') {
+            if (!element) return;
+
+            element.textContent = message;
+            element.className = `alert alert-${type}`;
+            element.style.display = 'block';
+
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 5000);
+        }
+
+        // Merchants management
+        async function loadMerchants() {
+            const loadingId = 'merchants-loading';
+            const table = document.getElementById('merchants-table');
+            const button = document.querySelector('#merchants .btn-primary');
+            const alertBox = document.getElementById('merchants-alert');
+
+            try {
+                showLoading(loadingId);
+                button.disabled = true;
+                alertBox.style.display = 'none';
+
+                const response = await axios.get('/api/merchants');
+
+                if (!Array.isArray(response.data)) {
+                    throw new Error('Сервер вернул некорректные данные');
+                }
+
+                renderMerchants(response.data);
+                table.style.display = 'block';
+                button.textContent = 'Скрыть мерчантов';
+
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alertBox.textContent = `Ошибка: ${error.response?.data?.error || error.message}`;
+                alertBox.className = 'alert alert-error';
+                alertBox.style.display = 'block';
+                table.style.display = 'none';
+                button.textContent = 'Показать мерчантов';
+            } finally {
+                hideLoading(loadingId);
+                button.disabled = false;
+            }
+        }
+
+        function renderMerchants(merchants) {
+            const tbody = document.getElementById('merchants-list');
+            tbody.innerHTML = '';
+
+            merchants.forEach(merchant => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+            <td>${merchant.id}</td>
+            <td>${merchant.name || merchant.merchant_name || 'Без имени'}</td>
+            <td>
+                <button class="btn btn-danger" onclick="deleteMerchant(${merchant.id})">
+                    Удалить
+                </button>
+            </td>
+        `;
+                tbody.appendChild(row);
+            });
+        }
+
+
+
+        function showAddMerchantModal() {
+            document.getElementById('add-merchant-modal').style.display = 'flex';
+            document.getElementById('merchant-form-alert').style.display = 'none';
+            document.getElementById('add-merchant-form').reset();
+        }
+
+        function hideAddMerchantModal() {
+            document.getElementById('add-merchant-modal').style.display = 'none';
+        }
+
+        async function handleAddMerchant(e) {
+            e.preventDefault();
+            const loadingElement = document.getElementById('merchant-submit-loading');
+            const alertBox = document.getElementById('merchant-form-alert');
+
+            try {
+                showLoading('merchant-submit-loading');
+
+                const merchantName = document.getElementById('merchant-name').value.trim();
+                if (!merchantName) {
+                    throw new Error("Имя мерчанта обязательно");
+                }
+
+                const response = await axios.post('/api/merchants', {
+                    merchant_name: merchantName
+                });
+
+                alertBox.textContent = 'Мерчант успешно добавлен';
+                alertBox.className = 'alert alert-success';
+                alertBox.style.display = 'block';
+
+                hideAddMerchantModal();
+                loadMerchants(); // Обновляем список мерчантов
+
+            } catch (error) {
+                console.error('Ошибка добавления мерчанта:', error);
+                alertBox.textContent = `Ошибка: ${error.response?.data?.error || error.message}`;
+                alertBox.className = 'alert alert-error';
+                alertBox.style.display = 'block';
+            } finally {
+                hideLoading('merchant-submit-loading');
+            }
+        }
+
+        async function deleteMerchant(merchantId) {
+            if (confirm(`Вы уверены, что хотите удалить мерчанта ${merchantId}?`)) {
+                try {
+                    await axios.delete(`/api/merchants/${merchantId}`);
+                    showAlert('merchants-alert', `Мерчант ${merchantId} успешно удален`, 'success');
+                    loadMerchants();
+
+                    if (currentTab === 'users') {
+                        loadUsers();
+                    }
+                } catch (error) {
+                    console.error('Ошибка удаления:', error);
+                    showAlert('merchants-alert', `Ошибка: ${error.response?.data?.error || error.message}`, 'error');
+                }
+            }
+        }
+
+
+
+        // Subscriptions management
+        async function loadSubscriptions() {
+            const loadingId = 'subscriptions-loading';
+            const alertBox = document.getElementById('subscriptions-alert');
+
+            try {
+                showLoading(loadingId);
+                const response = await axios.get(`${API_BASE_URL}/api/subscriptions`);
+
+                // Преобразуем данные из БД в нужный формат
+                const subscriptions = response.data.map(sub => {
+                    try {
+                        return {
+                            id: sub.sub_id,
+                            name: sub.name,
+                            price: typeof sub.price === 'string' ? JSON.parse(sub.price) : sub.price
+                        };
+                    } catch (e) {
+                        console.error('Ошибка парсинга цены:', e);
+                        return {
+                            id: sub.sub_id,
+                            name: sub.name,
+                            price: { month: 0, year: 0 } // Значения по умолчанию
+                        };
+                    }
+                });
+
+                renderSubscriptions(subscriptions);
+                document.getElementById('subscriptions-table').style.display = 'block';
+
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+                showAlert(alertBox, `Ошибка: ${error.message}`, 'error');
+            } finally {
+                hideLoading(loadingId);
+            }
+        }
+
+        function renderSubscriptions(subscriptions) {
+            const tbody = document.getElementById('subscriptions-list');
+            tbody.innerHTML = '';
+
+            subscriptions.forEach(sub => {
+                const row = document.createElement('tr');
+                const subId = sub.id || sub.sub_id;
+                let priceData = sub.price;
+
+                if (typeof priceData === 'string') {
+                    try {
+                        priceData = JSON.parse(priceData);
+                    } catch (e) {
+                        console.error('Ошибка парсинга цены:', e);
+                        priceData = { month: 0, year: 0 };
+                    }
+                }
+
+                row.innerHTML = `
+            <td>${subId}</td>
+            <td>${sub.name}</td>
+            <td>
+                <strong>Месячная:</strong> ${priceData.month} RUB<br>
+                <strong>Годовая:</strong> ${priceData.year} RUB
+            </td>
+            <td>
+                <button class="btn btn-info edit-sub-btn" 
+                        data-sub-id="${subId}"
+                        data-price='${JSON.stringify(priceData)}'>
+                    Изменить цены
+                </button>
+            </td>
+        `;
+                tbody.appendChild(row);
+            });
+
+            // Добавьте обработчик событий для всех кнопок редактирования
+            document.querySelectorAll('.edit-sub-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const subId = this.getAttribute('data-sub-id');
+                    const priceData = JSON.parse(this.getAttribute('data-price'));
+                    showEditSubscriptionModal(subId, priceData);
+                });
+            });
+        }
+
+        // Обновите функцию showEditSubscriptionModal:
+        function showEditSubscriptionModal(subId, priceData) {
+            console.log("Received subId:", subId, "Type:", typeof subId);
+            console.log("Received priceData:", priceData);
+
+            try {
+                // Проверка ID
+                subId = parseInt(subId);
+                if (isNaN(subId)) {
+                    throw new Error("Неверный ID подписки: значение не является числом");
+                }
+
+                if (subId <= 0) {
+                    throw new Error("Неверный ID подписки: значение должно быть положительным");
+                }
+
+                // Проверка priceData
+                if (!priceData || typeof priceData !== 'object') {
+                    priceData = { month: 0, year: 0 };
+                }
+
+                document.getElementById('subscription-id').value = subId;
+                document.getElementById('monthly-price').value = priceData.month || '';
+                document.getElementById('yearly-price').value = priceData.year || '';
+                document.getElementById('subscription-form-alert').style.display = 'none';
+                document.getElementById('edit-subscription-modal').style.display = 'flex';
+
+                console.log("Modal opened successfully for subId:", subId);
+            } catch (error) {
+                console.error("Ошибка открытия модального окна:", error);
+                alert(error.message);
+            }
+        }
+
+        // Обновленная функция отправки данных
+        async function handleUpdateSubscription() {
+            const subId = document.getElementById('subscription-id').value;
+            const monthlyPrice = document.getElementById('monthly-price').value;
+            const yearlyPrice = document.getElementById('yearly-price').value;
+            const alertBox = document.getElementById('subscription-form-alert');
+
+            try {
+                // Валидация данных
+                if (!subId) throw new Error("ID подписки не найден");
+                if (!monthlyPrice || !yearlyPrice) throw new Error("Все поля должны быть заполнены");
+
+                showLoading('subscription-submit-loading');
+
+                // Явно указываем правильный URL
+                const apiUrl = `http://localhost:3000/api/subscriptions/${subId}/price`;
+                console.log("Отправка запроса на:", apiUrl);
+
+                const response = await axios.put(apiUrl, {
+                    price: {
+                        month: parseFloat(monthlyPrice),
+                        year: parseFloat(yearlyPrice)
+                    }
+                });
+
+                showAlert(alertBox, 'Цены успешно обновлены!', 'success');
+                await loadSubscriptions();
+                setTimeout(hideEditSubscriptionModal, 1500);
+            } catch (error) {
+                console.error('Ошибка обновления:', {
+                    message: error.message,
+                    config: error.config
+                });
+
+                let errorMessage = `Ошибка соединения с сервером. Проверьте:`;
+                errorMessage += `\nURL: ${error.config?.url}`;
+                errorMessage += `\nМетод: ${error.config?.method}`;
+                errorMessage += `\nОжидаемый URL: http://localhost:3000/api/subscriptions/[id]/price`;
+
+                showAlert(alertBox, errorMessage, 'error');
+            } finally {
+                hideLoading('subscription-submit-loading');
+            }
+        }
+
+        // Скрытие модального окна
+        function hideEditSubscriptionModal() {
+            document.getElementById('edit-subscription-modal').style.display = 'none';
+        }
+
+        // Salary days management
+        async function loadSalaryDays() {
+            const loadingId = 'salary-loading';
+            const table = document.getElementById('salary-table');
+            const button = document.querySelector('#salary .btn-primary');
+            const alertBox = document.getElementById('salary-alert');
+
+            try {
+                showLoading(loadingId);
+                button.disabled = true;
+                alertBox.style.display = 'none';
+
+                const response = await axios.get('/api/salary');
+                appState.salary.loaded = true;
+                appState.salary.data = response.data;
+                renderSalaryDays(response.data);
+
+                table.style.display = 'block';
+                button.textContent = 'Скрыть зарплатные дни';
+                showAlert(alertBox, 'Данные успешно загружены', 'success');
+
+            } catch (error) {
+                console.error('Ошибка загрузки зарплатных дней:', error);
+                showAlert(alertBox, `Ошибка: ${error.response?.data?.error || error.message}`, 'error');
+                table.style.display = 'none';
+                button.textContent = 'Показать зарплатные дни';
+            } finally {
+                hideLoading(loadingId);
+                button.disabled = false;
+            }
+        }
+
+        function renderSalaryDays(days) {
+            const tbody = document.getElementById('salary-list');
+            tbody.innerHTML = '';
+
+            days.forEach(day => {
+                const row = document.createElement('tr');
+
+                row.innerHTML = `
+                    <td>${day.id}</td>
+                    <td>${day.salary_day}</td>
+                    <td>
+                        <button class="btn btn-info" onclick="updateSalaryDay(${day.id})">
+                            Изменить день
+                        </button>
+                    </td>
+                `;
+
+                tbody.appendChild(row);
+            });
+        }
+
+        async function updateSalaryDay(userId) {
+            const newDay = prompt(`Введите новый зарплатный день (1-31) для пользователя ${userId}:`, '1');
+
+            if (!newDay || isNaN(newDay) || newDay < 1 || newDay > 31) {
+                showAlert('salary-alert', 'Ошибка: День должен быть числом от 1 до 31', 'error');
+                return;
+            }
+
+            try {
+                await axios.post(`/api/salary/${userId}`, { day: parseInt(newDay) });
+                showAlert('salary-alert', `Зарплатный день для пользователя ${userId} успешно обновлен`, 'success');
+                loadSalaryDays();
+            } catch (error) {
+                console.error('Ошибка обновления зарплатного дня:', error);
+                showAlert('salary-alert', `Ошибка: ${error.response?.data?.error || error.message}`, 'error');
+            }
+        }
+
+        function showLoading(elementId) {
+            const element = document.getElementById(elementId);
+            if (!element) {
+                console.error(`Элемент с ID "${elementId}" не найден`);
+                return;
+            }
+            element.style.display = 'inline-block';
+        }
+
+        function hideLoading(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        function showAlert(element, message, type = 'success') {
+            if (!element) {
+                console.error('Alert element not found:', message);
+                return;
+            }
+
+            element.textContent = message;
+            element.className = `alert alert-${type}`;
+            element.style.display = 'block';
+            setTimeout(() => element.style.display = 'none', 5000);
+        }
+
+        // --- Закрытие модалок кликом вне окна ---
+        window.addEventListener('click', e => {
+            if (e.target.classList.contains('modal')) {
+                e.target.style.display = 'none';
+            }
+        });
+
+        document.getElementById('add-merchant-form').addEventListener('submit', handleAddMerchant);
+        // В конец вашего скрипта добавьте:
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('btn-info')) {  // <-- Добавлена закрывающая скобка
+                const button = e.target;
+                const subId = button.getAttribute('data-sub-id');
+                const priceJson = button.getAttribute('data-price');
+
+                showEditSubscriptionModal(subId, priceJson);
+            }
+        });
+    </script>
+</body>
+
+</html>
