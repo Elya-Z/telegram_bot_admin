@@ -1,7 +1,6 @@
 const pool = require('../config/db');
 
 class SubscriptionRepository {
-    // subscriptionRepository.js
     async getAllSubscriptions() {
         try {
             const { rows } = await pool.query(`
@@ -15,7 +14,6 @@ class SubscriptionRepository {
         }
     }
 
-    // subscriptionRepository.js
     async updateSubscriptionPrice(subId, price) {
         const client = await pool.connect();
         try {

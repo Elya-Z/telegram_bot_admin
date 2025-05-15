@@ -3,10 +3,10 @@ const pool = require('../config/db');
 class MerchantRepository {
     async getAllMerchants() {
         try {
-            // Явно указываем возвращаемое поле как 'name'
-            const result = await pool.query(
-                'SELECT id, merchant_name AS name FROM test.merchant'
-            );
+            const result = await pool.query(`
+                SELECT id, merchant_name AS name 
+                FROM test.merchant
+            `);
             return result.rows;
         } catch (error) {
             console.error('Ошибка при получении мерчантов:', error);
@@ -16,7 +16,7 @@ class MerchantRepository {
 
     async addMerchant({ merchant_name }) {
         const client = await pool.connect();
-        console.log("Подключение к БД получено"); // 1. Проверка подключения
+        console.log("Подключение к БД получено");
 
         try {
             console.log("Начало транзакции");
@@ -44,6 +44,33 @@ class MerchantRepository {
         } finally {
             client.release();
             console.log("Подключение к БД освобождено");
+        }
+    }
+
+    async updateMerchant(merchantId, merchantName) {
+        const client = await pool.connect();
+
+        try {
+            await client.query('BEGIN');
+
+            const result = await client.query(
+                'UPDATE test.merchant SET merchant_name = $1 WHERE id = $2 RETURNING *',
+                [merchantName, merchantId]
+            );
+
+            await client.query('COMMIT');
+
+            if (result.rows.length === 0) {
+                throw new Error('Мерчант не найден');
+            }
+
+            return result.rows[0];
+        } catch (error) {
+            await client.query('ROLLBACK');
+            console.error('Ошибка при обновлении мерчанта:', error);
+            throw error;
+        } finally {
+            client.release();
         }
     }
 

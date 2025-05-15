@@ -32,14 +32,11 @@ class UserController {
             console.error('Database error:', error);
             res.status(500).json({
                 error: 'Failed to fetch users',
-                details: error.message  // Добавляем детали ошибки
+                details: error.message
             });
         }
     }
 
-    /**
-     * Заблокировать пользователя
-     */
     async blockUser(req, res) {
         const userId = parseInt(req.params.id);
 
@@ -72,26 +69,19 @@ class UserController {
         }
     }
 
-    /**
-     * Разблокировать пользователя
-     */
     async unblockUser(req, res) {
         const userId = parseInt(req.params.id);
-
         if (!userId || isNaN(userId)) {
             return res.status(400).json({ error: 'Invalid user ID' });
         }
-
         try {
             const { rows } = await pool.query(
                 'UPDATE test.users SET status = 1 WHERE id = $1 RETURNING id, status',
                 [userId]
             );
-
             if (rows.length === 0) {
                 return res.status(404).json({ error: 'User not found' });
             }
-
             res.json({
                 success: true,
                 message: `User ${userId} unblocked successfully`,
@@ -108,64 +98,39 @@ class UserController {
         }
     }
 
-    /**
-     * Обновить баланс пользователя
-     */
     async updateBalance(req, res) {
-        const userId = parseInt(req.params.id);
-        const { amount, currency = 'RUB' } = req.body;
+        const { id, amount } = req.body;
 
-        if (!userId || isNaN(userId)) {
-            return res.status(400).json({ error: 'Invalid user ID' });
-        }
-
-        if (!amount || isNaN(parseFloat(amount))) {
-            return res.status(400).json({ error: 'Invalid amount' });
+        if (!id || !amount) {
+            return res.status(400).json({ error: "ID пользователя и сумма обязательны" });
         }
 
         try {
-            // Проверяем существует ли пользователь
-            const userCheck = await pool.query(
-                'SELECT id, balance FROM test.users WHERE id = $1',
-                [userId]
+            const user = await pool.query(
+                'SELECT balance FROM test.users WHERE id = $1',
+                [id]
             );
 
-            if (userCheck.rows.length === 0) {
-                return res.status(404).json({ error: 'User not found' });
+            if (user.rows.length === 0) {
+                return res.status(404).json({ error: "Пользователь не найден" });
             }
 
-            // Обновляем баланс
-            const newBalance = parseFloat(userCheck.rows[0].balance) + parseFloat(amount);
+            const newBalance = parseFloat(amount);
 
             await pool.query(
                 'UPDATE test.users SET balance = $1 WHERE id = $2',
-                [newBalance, userId]
+                [newBalance, id]
             );
-
-            logAction('ADMIN', 'Balance updated', {
-                userId,
-                amount,
-                currency,
-                newBalance
-            });
 
             res.json({
                 success: true,
                 newBalance,
-                message: `Balance for user ${userId} updated successfully`
+                message: `Баланс для пользователя ${id} успешно обновлен`
             });
         } catch (error) {
-            console.error('Error updating balance:', error);
-            logAction('SYSTEM', 'Error updating balance', {
-                userId,
-                error: error.message
-            });
-            res.status(500).json({
-                error: 'Failed to update balance',
-                details: error.message
-            });
+            console.error('Ошибка при обновлении баланса:', error);
+            res.status(500).json({ error: "Произошла ошибка при обновлении баланса" });
         }
     }
 }
-
 module.exports = new UserController();  

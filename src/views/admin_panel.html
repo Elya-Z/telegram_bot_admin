@@ -7,7 +7,6 @@
     <title>Админ-панель Telegram бота</title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js "></script>
     <style>
-        /* Вставляем весь CSS из вашего файла */
         :root {
             --primary-color: #4CAF50;
             --danger-color: #f44336;
@@ -56,6 +55,23 @@
             transition: all 0.3s ease;
             color: #666;
             border-bottom: 3px solid transparent;
+        }
+
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .user-table th,
+        .user-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .user-table th {
+            background-color: #f2f2f2;
         }
 
         .tab-btn:hover {
@@ -180,7 +196,6 @@
             align-items: center;
         }
 
-        /* Стили для таблицы подписок */
         #subscriptions-list td {
             vertical-align: middle;
             padding: 12px 15px;
@@ -191,7 +206,6 @@
             color: #333;
         }
 
-        /* Стили для модального окна */
         .modal-content h2 {
             margin-top: 0;
             color: #333;
@@ -348,6 +362,97 @@
                 background-color: #5a6268;
                 color: white;
             }
+
+            .modal {
+                display: none;
+                position: fixed;
+                z-index: 1;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                overflow: auto;
+                background-color: rgba(0, 0, 0, 0.4);
+                padding: 20px;
+            }
+
+            .modal-content {
+                background-color: #fefefe;
+                margin: 15% auto;
+                padding: 20px;
+                border: 1px solid #888;
+                width: 400px;
+                border-radius: 8px;
+                position: relative;
+            }
+
+            .close-btn {
+                color: #aaa;
+                float: right;
+                font-size: 28px;
+                font-weight: bold;
+                cursor: pointer;
+                position: absolute;
+                top: 10px;
+                right: 15px;
+            }
+
+            .form-group {
+                margin-bottom: 15px;
+            }
+
+            .form-control {
+                width: 100%;
+                padding: 8px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 16px;
+            }
+
+            .form-actions {
+                display: flex;
+                justify-content: space-between;
+                margin-top: 20px;
+            }
+
+            .btn {
+                padding: 10px 16px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-weight: bold;
+                transition: all 0.3s ease;
+            }
+
+            .btn-primary {
+                background-color: #007bff;
+                color: white;
+            }
+
+            .btn-secondary {
+                background-color: #6c757d;
+                color: white;
+            }
+
+            .btn:hover {
+                opacity: 0.9;
+            }
+
+            .alert {
+                padding: 12px;
+                margin-bottom: 15px;
+                border-radius: 4px;
+            }
+
+            .alert-success {
+                background-color: #d4edda;
+                color: #155724;
+            }
+
+            .alert-error {
+                background-color: #f8d7da;
+                color: #721c24;
+            }
         }
     </style>
 </head>
@@ -363,19 +468,18 @@
             <button class="tab-btn" data-tab="salary">Зарплатные дни</button>
         </div>
 
-        <!-- Users Tab -->
         <div id="users" class="tab-content active">
             <div class="action-buttons">
-                <!-- В разделе Users Tab -->
                 <button class="btn btn-primary" onclick="toggleUsersTable()">
                     <span id="users-loading" class="loading" style="display: none;"></span>
                     Показать пользователей
                 </button>
+                <button onclick="exportUsers()">📄 Экспортировать в Excel</button>
             </div>
 
             <div id="users-alert" class="alert"></div>
 
-            <div id="users-table" style="display: none;">
+            <div id="users-table" class="user-table" style="display: none;">
                 <table>
                     <thead>
                         <tr>
@@ -391,22 +495,20 @@
             </div>
         </div>
 
-        <!-- Merchants Tab -->
         <div id="merchants" class="tab-content">
             <div class="action-buttons">
                 <button class="btn btn-primary" onclick="loadMerchants()">
                     <span id="merchants-loading" class="loading" style="display: none;"></span>
                     Показать мерчантов
                 </button>
-                <button class="btn btn-info" onclick="showAddMerchantModal()">
-                    Добавить мерчанта
-                </button>
+                <button class="btn btn-success" onclick="showAddMerchantModal()">Добавить мерчанта</button>
+                <button class="btn btn-warning" onclick="exportMerchants()">📄 Экспортировать мерчантов в Excel</button>
             </div>
 
-            <div id="merchants-alert" class="alert"></div>
+            <div id="merchants-alert" class="alert" style="display: none;"></div>
 
             <div id="merchants-table" style="display: none;">
-                <table>
+                <table class="merchant-table">
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -419,13 +521,13 @@
             </div>
         </div>
 
-        <!-- Subscriptions Tab -->
         <div id="subscriptions" class="tab-content">
             <div class="action-buttons">
                 <button class="btn btn-primary" onclick="loadSubscriptions()">
                     <span id="subscriptions-loading" class="loading" style="display: none;"></span>
                     Показать подписки
                 </button>
+                <!-- <button onclick="exportSubscriptions()">📄 Экспортировать в Excel</button> -->
             </div>
 
             <div id="subscriptions-alert" class="alert"></div>
@@ -445,7 +547,6 @@
             </div>
         </div>
 
-        <!-- Salary Tab -->
         <div id="salary" class="tab-content">
             <div class="action-buttons">
                 <button class="btn btn-primary" onclick="loadSalaryDays()">
@@ -471,7 +572,6 @@
         </div>
     </div>
 
-    <!-- Add Merchant Modal -->
     <div id="add-merchant-modal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="hideAddMerchantModal()">&times;</span>
@@ -491,7 +591,6 @@
         </div>
     </div>
 
-    <!-- Edit Subscription Modal -->
     <div id="edit-subscription-modal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="hideEditSubscriptionModal()">&times;</span>
@@ -500,7 +599,7 @@
             <div id="edit-subscription-form">
                 <input type="hidden" id="subscription-id"">
 
-                <div class=" form-group">
+            <div class=" form-group">
                 <label>Месячная подписка (RUB):</label>
                 <input type="number" id="monthly-price" class="form-control" required>
             </div>
@@ -521,12 +620,54 @@
             </div>
         </div>
     </div>
+
+    <div id="edit-merchant-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="hideEditMerchantModal()">&times;</span>
+            <h2>Редактировать мерчанта</h2>
+            <div id="edit-merchant-form-alert" class="alert" style="display: none;"></div>
+            <form id="edit-merchant-form">
+                <input type="hidden" id="edit-merchant-id">
+                <div class="form-group">
+                    <label for="edit-merchant-name">Имя мерчанта:</label>
+                    <input type="text" id="edit-merchant-name" class="form-control" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideEditMerchantModal()">Отмена</button>
+                </div>
+            </form>
+        </div>
     </div>
 
 
     <script>
 
-        // Добавьте в начало вашего script
+        // function exportSubscriptions() {
+        //     window.open('/api/export/subscriptions');
+        // }
+        const merchantTableState = {
+            visible: false,
+            loaded: false,
+            data: []
+        };
+
+        const subscriptionsTableState = {
+            visible: false,
+            loaded: false,
+            data: []
+        };
+
+        const salaryTableState = {
+            visible: false,
+            loaded: false,
+            data: []
+        };
+
+        function exportUsers() {
+            window.open('/api/export/users');
+        }
+
         function escapeJson(data) {
             try {
                 return JSON.stringify(data || {}).replace(/"/g, '&quot;');
@@ -537,7 +678,6 @@
         }
         const API_BASE_URL = window.location.origin;
 
-        // Current active tab
         const appState = {
             users: { loaded: false, data: [] },
             merchants: { loaded: false, data: [] },
@@ -624,7 +764,6 @@
             }
         }
 
-        // Глобальное состояние для управления таблицей пользователей
         const userTableState = {
             visible: false,
             loaded: false,
@@ -637,7 +776,6 @@
             const alertBox = document.getElementById('users-alert');
 
             try {
-                // Если таблица уже видна — скрываем
                 if (userTableState.visible) {
                     table.style.display = 'none';
                     button.textContent = 'Показать пользователей';
@@ -645,7 +783,6 @@
                     return;
                 }
 
-                // Если данные ещё не загружены — загружаем их
                 if (!userTableState.loaded) {
                     showLoading('users-loading');
                     alertBox.style.display = 'none';
@@ -660,7 +797,6 @@
                     renderUsers(userTableState.data);
                 }
 
-                // Показываем таблицу
                 table.style.display = 'block';
                 button.textContent = 'Скрыть пользователей';
                 userTableState.visible = true;
@@ -677,6 +813,7 @@
                 hideLoading('users-loading');
             }
         }
+
         function renderUsers(users) {
             const tbody = document.getElementById('users-list');
             tbody.innerHTML = '';
@@ -695,6 +832,7 @@
           ${user.status === 1
                         ? `<button class="btn btn-danger" onclick="blockUser(${user.id})">Заблокировать</button>`
                         : `<button class="btn btn-secondary" onclick="unblockUser(${user.id})">Разблокировать</button>`}
+            <button onclick="promptUpdateBalance(${user.id})">Изменить баланс</button>
         </td>`;
                 tbody.appendChild(row);
             });
@@ -721,15 +859,10 @@
                     btn.textContent = 'Разблокировать';
                     btn.setAttribute('onclick', `unblockUser(${userId})`);
                 }
-
-
             } catch (error) {
                 console.error('Block error:', error);
                 showAlert(alertBox, `Ошибка: ${error.response?.data?.error || error.message}`, 'error');
             }
-
-
-
         }
 
         async function unblockUser(userId) {
@@ -741,13 +874,11 @@
             try {
                 const response = await axios.post(`/api/users/unblock/${userId}`);
 
-                // Обновляем состояние
                 const userIndex = appState.users.data.findIndex(u => u.id === userId);
                 if (userIndex !== -1) {
                     appState.users.data[userIndex].status = 1;
                 }
 
-                // Обновляем UI
                 const row = document.querySelector(`tr:has(td[data-id="${userId}"])`);
                 if (row) {
                     row.querySelector('.badge').className = 'badge badge-success';
@@ -765,6 +896,85 @@
             }
         }
 
+        async function promptUpdateBalance(userId) {
+            const amount = prompt("Введите сумму для изменения баланса (положительное или отрицательное число):");
+            if (amount === null) return;
+
+            updateBalance(userId, parseFloat(amount));
+        }
+
+        async function showUsers() {
+            const table = document.getElementById('users-table');
+            const button = document.querySelector('#users .btn-primary');
+            const alertBox = document.getElementById('users-alert');
+
+            try {
+                if (userTableState.visible) {
+                    table.style.display = 'none';
+                    button.textContent = 'Показать пользователей';
+                    userTableState.visible = false;
+                    return;
+                }
+
+                if (!userTableState.loaded) {
+                    showLoading('users-loading');
+                    alertBox.style.display = 'none';
+
+                    const response = await axios.get('/api/users');
+                    if (!Array.isArray(response.data)) {
+                        throw new Error('Неверный формат данных');
+                    }
+
+                    userTableState.data = response.data;
+                    userTableState.loaded = true;
+
+                    renderUsers(userTableState.data);
+                }
+
+                table.style.display = 'block';
+                button.textContent = 'Скрыть пользователей';
+                userTableState.visible = true;
+
+            } catch (error) {
+                console.error('Ошибка загрузки пользователей:', error);
+                alertBox.textContent = `Ошибка: ${error.response?.data?.error || error.message}`;
+                alertBox.className = 'alert alert-error';
+                alertBox.style.display = 'block';
+                table.style.display = 'none';
+                button.textContent = 'Показать пользователей';
+                userTableState.visible = false;
+            } finally {
+                hideLoading('users-loading');
+            }
+        }
+
+        async function updateBalance(userId, amount) {
+            try {
+                const response = await axios.post(`/api/users/update-balance`, {
+                    id: userId,
+                    amount: amount
+                });
+
+                const { newBalance } = response.data;
+
+                const row = document.querySelector(`#users-list tr td[data-id='${userId}']`)?.parentElement;
+                if (!row) {
+                    console.warn('Строка пользователя не найдена');
+                    return;
+                }
+
+                const balanceCell = row.querySelectorAll('td')[1];
+                if (balanceCell) {
+                    balanceCell.textContent = newBalance.toFixed(2);
+                }
+
+                alert(`Баланс успешно обновлен: ${newBalance.toFixed(2)}`);
+            } catch (error) {
+                console.error('Ошибка при обновлении баланса:', error);
+                alert('Ошибка при обновлении баланса: ' + (error.response?.data?.error || error.message));
+            }
+        }
+
         function showAlert(element, message, type = 'success') {
             if (!element) return;
 
@@ -777,38 +987,44 @@
             }, 5000);
         }
 
-        // Merchants management
         async function loadMerchants() {
-            const loadingId = 'merchants-loading';
             const table = document.getElementById('merchants-table');
             const button = document.querySelector('#merchants .btn-primary');
             const alertBox = document.getElementById('merchants-alert');
 
             try {
-                showLoading(loadingId);
-                button.disabled = true;
-                alertBox.style.display = 'none';
-
-                const response = await axios.get('/api/merchants');
-
-                if (!Array.isArray(response.data)) {
-                    throw new Error('Сервер вернул некорректные данные');
+                if (merchantTableState.visible) {
+                    table.style.display = 'none';
+                    button.textContent = 'Показать мерчантов';
+                    merchantTableState.visible = false;
+                    return;
                 }
 
-                renderMerchants(response.data);
+                if (!merchantTableState.loaded) {
+                    showLoading('merchants-loading');
+                    alertBox.style.display = 'none';
+
+                    const response = await axios.get('/api/merchants');
+                    merchantTableState.data = response.data;
+                    merchantTableState.loaded = true;
+
+                    renderMerchants(merchantTableState.data);
+                }
+
                 table.style.display = 'block';
                 button.textContent = 'Скрыть мерчантов';
+                merchantTableState.visible = true;
 
             } catch (error) {
-                console.error('Ошибка:', error);
+                console.error('Ошибка загрузки мерчантов:', error);
                 alertBox.textContent = `Ошибка: ${error.response?.data?.error || error.message}`;
                 alertBox.className = 'alert alert-error';
                 alertBox.style.display = 'block';
                 table.style.display = 'none';
                 button.textContent = 'Показать мерчантов';
+                merchantTableState.visible = false;
             } finally {
-                hideLoading(loadingId);
-                button.disabled = false;
+                hideLoading('merchants-loading');
             }
         }
 
@@ -820,18 +1036,103 @@
                 const row = document.createElement('tr');
                 row.innerHTML = `
             <td>${merchant.id}</td>
-            <td>${merchant.name || merchant.merchant_name || 'Без имени'}</td>
+            <td>${merchant.name}</td>
             <td>
-                <button class="btn btn-danger" onclick="deleteMerchant(${merchant.id})">
+<button class="btn btn-info" onclick="showEditMerchantModal(${merchant.id}, '${merchant.name.replace(/'/g, "\\'")}')">
+            Редактировать
+        </button>                <button class="btn btn-danger" onclick="deleteMerchant(${merchant.id})">
                     Удалить
                 </button>
             </td>
         `;
                 tbody.appendChild(row);
             });
+            document.querySelectorAll('.edit-merchant-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const id = this.getAttribute('data-id');
+                    const name = this.getAttribute('data-name');
+                    showEditMerchantModal(id, name);
+                });
+            });
         }
 
+        function exportMerchants() {
+            window.open('/api/export/merchants');
+        }
 
+        function initializeEditButtons() {
+            document.querySelectorAll('.edit-merchant-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const merchantId = this.getAttribute('data-merchant-id');
+                    const merchantName = this.getAttribute('data-merchant-name');
+                    showEditMerchantModal(merchantId, merchantName);
+                });
+            });
+        }
+
+        function showEditMerchantModal(id, name) {
+            console.log("Opening modal for merchant:", id, name);
+            console.log("Modal element:", document.getElementById('edit-merchant-modal'));
+            console.log("Current display style:",
+                window.getComputedStyle(document.getElementById('edit-merchant-modal')).display);
+
+            const modal = document.getElementById('edit-merchant-modal');
+            document.getElementById('edit-merchant-id').value = id;
+            document.getElementById('edit-merchant-name').value = name;
+
+            const alertBox = document.getElementById('edit-merchant-form-alert');
+            alertBox.style.display = 'none';
+
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+
+            console.log("Modal should be visible now");
+        }
+
+        function hideEditMerchantModal() {
+            document.getElementById('edit-merchant-modal').style.display = 'none';
+            document.body.style.overflow = 'auto'; // Разблокируем прокрутку страницы
+        }
+        document.getElementById('edit-merchant-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const id = document.getElementById('edit-merchant-id').value;
+            const name = document.getElementById('edit-merchant-name').value.trim();
+            const alertBox = document.getElementById('edit-merchant-form-alert');
+
+            if (!name) {
+                alertBox.textContent = 'Имя мерчанта обязательно';
+                alertBox.className = 'alert alert-error';
+                alertBox.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await axios.put(`/api/merchants/${id}`, {
+                    merchant_name: name
+                });
+
+                alertBox.textContent = 'Мерчант успешно обновлен';
+                alertBox.className = 'alert alert-success';
+                alertBox.style.display = 'block';
+
+                loadMerchants();
+
+                setTimeout(hideEditMerchantModal, 1500);
+            } catch (error) {
+                console.error('Ошибка обновления мерчанта:', error);
+                alertBox.textContent = `Ошибка: ${error.response?.data?.error || error.message}`;
+                alertBox.className = 'alert alert-error';
+                alertBox.style.display = 'block';
+            }
+        });
+
+        window.addEventListener('click', function (event) {
+            const modal = document.getElementById('edit-merchant-modal');
+            if (event.target === modal) {
+                hideEditMerchantModal();
+            }
+        });
 
         function showAddMerchantModal() {
             document.getElementById('add-merchant-modal').style.display = 'flex';
@@ -865,7 +1166,7 @@
                 alertBox.style.display = 'block';
 
                 hideAddMerchantModal();
-                loadMerchants(); // Обновляем список мерчантов
+                loadMerchants();
 
             } catch (error) {
                 console.error('Ошибка добавления мерчанта:', error);
@@ -894,43 +1195,59 @@
             }
         }
 
-
-
-        // Subscriptions management
         async function loadSubscriptions() {
-            const loadingId = 'subscriptions-loading';
+            const table = document.getElementById('subscriptions-table');
+            const button = document.querySelector('#subscriptions .btn-primary');
             const alertBox = document.getElementById('subscriptions-alert');
 
             try {
-                showLoading(loadingId);
-                const response = await axios.get(`${API_BASE_URL}/api/subscriptions`);
+                if (subscriptionsTableState.visible) {
+                    table.style.display = 'none';
+                    button.textContent = 'Показать подписки';
+                    subscriptionsTableState.visible = false;
+                    return;
+                }
 
-                // Преобразуем данные из БД в нужный формат
-                const subscriptions = response.data.map(sub => {
-                    try {
-                        return {
-                            id: sub.sub_id,
-                            name: sub.name,
-                            price: typeof sub.price === 'string' ? JSON.parse(sub.price) : sub.price
-                        };
-                    } catch (e) {
-                        console.error('Ошибка парсинга цены:', e);
-                        return {
-                            id: sub.sub_id,
-                            name: sub.name,
-                            price: { month: 0, year: 0 } // Значения по умолчанию
-                        };
-                    }
-                });
+                if (!subscriptionsTableState.loaded) {
+                    showLoading('subscriptions-loading');
+                    alertBox.style.display = 'none';
 
-                renderSubscriptions(subscriptions);
-                document.getElementById('subscriptions-table').style.display = 'block';
+                    const response = await axios.get(`${API_BASE_URL}/api/subscriptions`);
+                    subscriptionsTableState.data = response.data.map(sub => {
+                        try {
+                            return {
+                                id: sub.sub_id,
+                                name: sub.name,
+                                price: typeof sub.price === 'string' ? JSON.parse(sub.price) : sub.price
+                            };
+                        } catch (e) {
+                            console.error('Ошибка парсинга цены:', e);
+                            return {
+                                id: sub.sub_id,
+                                name: sub.name,
+                                price: { month: 0, year: 0 }
+                            };
+                        }
+                    });
+                    subscriptionsTableState.loaded = true;
+
+                    renderSubscriptions(subscriptionsTableState.data);
+                }
+
+                table.style.display = 'block';
+                button.textContent = 'Скрыть подписки';
+                subscriptionsTableState.visible = true;
 
             } catch (error) {
                 console.error('Ошибка загрузки:', error);
-                showAlert(alertBox, `Ошибка: ${error.message}`, 'error');
+                alertBox.textContent = `Ошибка: ${error.message}`;
+                alertBox.className = 'alert alert-error';
+                alertBox.style.display = 'block';
+                table.style.display = 'none';
+                button.textContent = 'Показать подписки';
+                subscriptionsTableState.visible = false;
             } finally {
-                hideLoading(loadingId);
+                hideLoading('subscriptions-loading');
             }
         }
 
@@ -953,40 +1270,30 @@
                 }
 
                 row.innerHTML = `
-            <td>${subId}</td>
-            <td>${sub.name}</td>
-            <td>
-                <strong>Месячная:</strong> ${priceData.month} RUB<br>
-                <strong>Годовая:</strong> ${priceData.year} RUB
-            </td>
-            <td>
-                <button class="btn btn-info edit-sub-btn" 
-                        data-sub-id="${subId}"
-                        data-price='${JSON.stringify(priceData)}'>
-                    Изменить цены
-                </button>
-            </td>
-        `;
+                    <td>${subId}</td>
+                    <td>${sub.name}</td>
+                    <td>
+                        <strong>Месячная:</strong> ${priceData.month} RUB<br>
+                        <strong>Годовая:</strong> ${priceData.year} RUB
+                    </td>
+                    <td>
+                        <button class="btn btn-info edit-sub-btn" 
+                                data-sub-id="${subId}"
+                                data-price='${JSON.stringify(priceData)}'>
+                            Изменить цены
+                        </button>
+                    </td>
+                `;
                 tbody.appendChild(row);
             });
 
-            // Добавьте обработчик событий для всех кнопок редактирования
-            document.querySelectorAll('.edit-sub-btn').forEach(btn => {
-                btn.addEventListener('click', function () {
-                    const subId = this.getAttribute('data-sub-id');
-                    const priceData = JSON.parse(this.getAttribute('data-price'));
-                    showEditSubscriptionModal(subId, priceData);
-                });
-            });
         }
 
-        // Обновите функцию showEditSubscriptionModal:
         function showEditSubscriptionModal(subId, priceData) {
             console.log("Received subId:", subId, "Type:", typeof subId);
             console.log("Received priceData:", priceData);
 
             try {
-                // Проверка ID
                 subId = parseInt(subId);
                 if (isNaN(subId)) {
                     throw new Error("Неверный ID подписки: значение не является числом");
@@ -996,7 +1303,6 @@
                     throw new Error("Неверный ID подписки: значение должно быть положительным");
                 }
 
-                // Проверка priceData
                 if (!priceData || typeof priceData !== 'object') {
                     priceData = { month: 0, year: 0 };
                 }
@@ -1014,7 +1320,6 @@
             }
         }
 
-        // Обновленная функция отправки данных
         async function handleUpdateSubscription() {
             const subId = document.getElementById('subscription-id').value;
             const monthlyPrice = document.getElementById('monthly-price').value;
@@ -1022,13 +1327,11 @@
             const alertBox = document.getElementById('subscription-form-alert');
 
             try {
-                // Валидация данных
                 if (!subId) throw new Error("ID подписки не найден");
                 if (!monthlyPrice || !yearlyPrice) throw new Error("Все поля должны быть заполнены");
 
                 showLoading('subscription-submit-loading');
 
-                // Явно указываем правильный URL
                 const apiUrl = `http://localhost:3000/api/subscriptions/${subId}/price`;
                 console.log("Отправка запроса на:", apiUrl);
 
@@ -1059,39 +1362,47 @@
             }
         }
 
-        // Скрытие модального окна
         function hideEditSubscriptionModal() {
             document.getElementById('edit-subscription-modal').style.display = 'none';
         }
 
-        // Salary days management
         async function loadSalaryDays() {
-            const loadingId = 'salary-loading';
             const table = document.getElementById('salary-table');
             const button = document.querySelector('#salary .btn-primary');
             const alertBox = document.getElementById('salary-alert');
 
             try {
-                showLoading(loadingId);
-                button.disabled = true;
-                alertBox.style.display = 'none';
+                if (salaryTableState.visible) {
+                    table.style.display = 'none';
+                    button.textContent = 'Показать зарплатные дни';
+                    salaryTableState.visible = false;
+                    return;
+                }
 
-                const response = await axios.get('/api/salary');
-                appState.salary.loaded = true;
-                appState.salary.data = response.data;
-                renderSalaryDays(response.data);
+                if (!salaryTableState.loaded) {
+                    showLoading('salary-loading');
+                    button.disabled = true;
+                    alertBox.style.display = 'none';
+
+                    const response = await axios.get('/api/salary');
+                    salaryTableState.data = response.data;
+                    salaryTableState.loaded = true;
+
+                    renderSalaryDays(salaryTableState.data);
+                }
 
                 table.style.display = 'block';
                 button.textContent = 'Скрыть зарплатные дни';
-                showAlert(alertBox, 'Данные успешно загружены', 'success');
+                salaryTableState.visible = true;
 
             } catch (error) {
                 console.error('Ошибка загрузки зарплатных дней:', error);
                 showAlert(alertBox, `Ошибка: ${error.response?.data?.error || error.message}`, 'error');
                 table.style.display = 'none';
                 button.textContent = 'Показать зарплатные дни';
+                salaryTableState.visible = false;
             } finally {
-                hideLoading(loadingId);
+                hideLoading('salary-loading');
                 button.disabled = false;
             }
         }
@@ -1144,8 +1455,13 @@
             element.style.display = 'inline-block';
         }
 
-        function hideLoading(id) {
-            document.getElementById(id).style.display = 'none';
+        function hideLoading(elementId) {
+            const element = document.getElementById(elementId);
+            if (!element) {
+                console.error(`Элемент с ID "${elementId}" не найден`);
+                return;
+            }
+            element.style.display = 'none';
         }
 
         function showAlert(element, message, type = 'success') {
@@ -1160,7 +1476,6 @@
             setTimeout(() => element.style.display = 'none', 5000);
         }
 
-        // --- Закрытие модалок кликом вне окна ---
         window.addEventListener('click', e => {
             if (e.target.classList.contains('modal')) {
                 e.target.style.display = 'none';
@@ -1168,16 +1483,6 @@
         });
 
         document.getElementById('add-merchant-form').addEventListener('submit', handleAddMerchant);
-        // В конец вашего скрипта добавьте:
-        document.addEventListener('click', function (e) {
-            if (e.target.classList.contains('btn-info')) {  // <-- Добавлена закрывающая скобка
-                const button = e.target;
-                const subId = button.getAttribute('data-sub-id');
-                const priceJson = button.getAttribute('data-price');
-
-                showEditSubscriptionModal(subId, priceJson);
-            }
-        });
     </script>
 </body>
 

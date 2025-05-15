@@ -1,18 +1,29 @@
 const merchantRepository = require('../repositories/merchantRepository');
-
+const pool = require('../config/db');
 class MerchantController {
     async getMerchants(req, res) {
         try {
-            console.log('Попытка получить мерчантов из БД...');
-            const merchants = await merchantRepository.getAllMerchants();
-            res.json(merchants);
+            const result = await pool.query(`
+                SELECT id, merchant_name AS name 
+                FROM test.merchant
+            `);
+
+            if (!result.rows.length) {
+                return res.status(404).json({ error: 'Мерчанты не найдены' });
+            }
+
+            res.json(result.rows.map(m => ({
+                id: m.id,
+                name: m.name
+            })));
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            console.error('Ошибка при получении мерчантов:', error);
+            res.status(500).json({ error: 'Не удалось загрузить мерчантов' });
         }
     }
 
     async addMerchant(req, res) {
-        console.log("Получен запрос на добавление. Тело:", req.body); // 1. Логируем входящие данные
+        console.log("Получен запрос на добавление. Тело:", req.body);
 
         try {
             const { merchant_name } = req.body;
@@ -41,6 +52,25 @@ class MerchantController {
             await merchantRepository.deleteMerchant(merchantId);
             res.json({ success: true });
         } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+    async updateMerchant(req, res) {
+        try {
+            const { id, merchant_name } = req.body;
+
+            if (!merchant_name || !merchant_name.trim()) {
+                return res.status(400).json({ error: "Имя мерчанта не может быть пустым" });
+            }
+
+            const updated = await merchantRepository.updateMerchant(id, merchant_name);
+
+            res.json({
+                success: true,
+                data: updated
+            });
+        } catch (error) {
+            console.error("Ошибка обновления мерчанта:", error);
             res.status(500).json({ error: error.message });
         }
     }

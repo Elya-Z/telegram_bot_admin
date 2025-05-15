@@ -1,12 +1,9 @@
 const subscriptionRepository = require('../repositories/subscriptionRepository');
 
 class SubscriptionController {
-    // subscriptionController.js
     async getSubscriptions(req, res) {
         try {
             const subscriptions = await subscriptionRepository.getAllSubscriptions();
-
-            // Преобразуем данные для фронтенда
             res.json(subscriptions.map(sub => ({
                 sub_id: sub.sub_id,
                 name: sub.name,
@@ -17,7 +14,6 @@ class SubscriptionController {
         }
     }
 
-    // subscriptionController.js
 
     async updateSubscriptionPrice(req, res) {
         try {
@@ -60,30 +56,6 @@ class SubscriptionController {
             });
         }
     }
-    // async updatePrice(req, res) {
-    //     try {
-    //         const subId = req.params.id;
-    //         const { month, year } = req.body;
-
-    //         if (!subId || !month || !year) {
-    //             return res.status(400).json({
-    //                 error: 'Требуется ID подписки и обе цены'
-    //             });
-    //         }
-
-    //         const updated = await subscriptionRepository.updateSubscriptionPrice(
-    //             subId,
-    //             { month, year }
-    //         );
-
-    //         res.json({
-    //             success: true,
-    //             subscription: updated
-    //         });
-    //     } catch (error) {
-    //         res.status(500).json({ error: error.message });
-    //     }
-    // }
 }
 
 module.exports = new SubscriptionController();

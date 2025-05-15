@@ -6,7 +6,6 @@ const salaryRoutes = require('./routes/salaryRoutes');
 
 const app = express();
 
-// Правильный порядок middleware
 app.use(cors({
     origin: 'http://localhost:3000',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -16,23 +15,18 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Статические файлы
 app.use(express.static(path.join(__dirname, 'views')));
 
-// Подключение роутов
 const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const otherRoutes = require('./routes');
 
-// Явное подключение роутов
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api', otherRoutes);
 
-// Admin panel route
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'admin_panel.html'));
 });
 
-// Error handling
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({
@@ -40,6 +34,12 @@ app.use((err, req, res, next) => {
         message: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
 });
+const exportRoutes = require('./routes/exportRoutes');
+app.use('/api', exportRoutes);
+
+const merchantRoutes = require('./routes/merchantRoutes');
+app.use('/api/merchants', merchantRoutes);
+
 app.use('/api/salary', salaryRoutes);
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
