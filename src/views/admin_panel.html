@@ -1072,7 +1072,8 @@
         const backupsTableState = {
             visible: false,
             loaded: false,
-            data: []
+            data: [],
+            sortDirection: 'asc'
         };
 
         function exportUsers() {
@@ -2174,6 +2175,23 @@
                     resetBtn.classList.add('active');
                 }
             }
+            if (tableType === 'backups') {
+                const ascBtn = document.getElementById('sort-asc-btn');
+                const descBtn = document.getElementById('sort-desc-btn');
+                const resetBtn = document.getElementById('sort-reset-btn');
+
+                ascBtn.classList.remove('active');
+                descBtn.classList.remove('active');
+                resetBtn.classList.remove('active');
+
+                if (backupsTableState.sortDirection === 'asc') {
+                    ascBtn.classList.add('active');
+                } else if (backupsTableState.sortDirection === 'desc') {
+                    descBtn.classList.add('active');
+                } else {
+                    resetBtn.classList.add('active');
+                }
+            }
 
         }
 
@@ -2312,7 +2330,13 @@
             const tbody = document.getElementById('backups-list');
             tbody.innerHTML = '';
 
-            backups.forEach(backup => {
+            const sortedBackups = [...backups].sort((a, b) => {
+                return backupsTableState.sortDirection === 'asc'
+                    ? a.id - b.id
+                    : b.id - a.id;
+            });
+
+            sortedBackups.forEach(backup => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${backup.id}</td>
