@@ -1522,6 +1522,7 @@
             }
             sortMerchants();
             renderMerchants(merchantTableState.data);
+            updateSortButtons('merchants');
         }
 
         function sortMerchants() {
@@ -1691,8 +1692,6 @@
                 } else {
                     sortMerchants();
                 }
-
-                // Обновляем таблицу
                 renderMerchants(merchantTableState.filteredData);
 
                 hideAddMerchantModal();
@@ -2103,6 +2102,7 @@
         function sortSalaryDays(direction) {
             salaryTableState.sortDirection = direction;
             renderSalaryDays(salaryTableState.data);
+            updateSortButtons('salary');
         }
 
         function updateSortButtons(tableType) {
