@@ -37,10 +37,18 @@ app.use((err, req, res, next) => {
 const exportRoutes = require('./routes/exportRoutes');
 app.use('/api', exportRoutes);
 
+
 const merchantRoutes = require('./routes/merchantRoutes');
 app.use('/api/merchants', merchantRoutes);
 
 app.use('/api/salary', salaryRoutes);
+
+const reportRoutes = require('./routes/reportRoutes');
+app.use('/api', reportRoutes);
+
+const backupRoutes = require('./routes/backupRoutes');
+app.use('/api/backups', backupRoutes);
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);

@@ -4,7 +4,7 @@ class SalaryRepository {
     async getAllSalaryDays() {
         try {
             const { rows } = await pool.query(`
-                SELECT id, salary_day 
+                SELECT id, salary_day, salary_props 
                 FROM test.salary
                 ORDER BY id
             `);
@@ -20,20 +20,36 @@ class SalaryRepository {
         try {
             await client.query('BEGIN');
 
-            const query = `
-                INSERT INTO test.salary_days (user_id, salary_day)
-                VALUES ($1, $2)
-                ON CONFLICT (user_id) 
-                DO UPDATE SET salary_day = $2
-                RETURNING user_id, salary_day
-            `;
+            const checkQuery = 'SELECT id FROM test.salary WHERE id = $1';
+            const checkResult = await client.query(checkQuery, [userId]);
 
-            const { rows } = await client.query(query, [userId, day]);
+            let result;
+            if (checkResult.rows.length > 0) {
+                const updateQuery = `
+                    UPDATE test.salary 
+                    SET salary_day = $1 
+                    WHERE id = $2 
+                    RETURNING id, salary_day, salary_props
+                `;
+                result = await client.query(updateQuery, [day, userId]);
+            } else {
+                const insertQuery = `
+                    INSERT INTO test.salary (id, salary_day, salary_props)
+                    VALUES ($1, $2, $3)
+                    RETURNING id, salary_day, salary_props
+                `;
+                result = await client.query(insertQuery, [
+                    userId,
+                    day,
+                    '{}'
+                ]);
+            }
 
             await client.query('COMMIT');
-            return rows[0];
+            return result.rows[0];
         } catch (error) {
             await client.query('ROLLBACK');
+            console.error('Error updating salary day:', error);
             throw error;
         } finally {
             client.release();

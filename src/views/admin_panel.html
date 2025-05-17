@@ -2,6 +2,7 @@
 <html lang="ru">
 
 <head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Админ-панель Telegram бота</title>
@@ -107,6 +108,23 @@
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .merchant-search-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        #merchant-search,
+        #merchant-search+.btn-secondary {
+            margin: 0;
+            vertical-align: middle;
+        }
+
+        input[type="text"].form-control {
+            line-height: normal;
         }
 
         .btn {
@@ -119,6 +137,8 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
         .btn-primary {
@@ -127,18 +147,97 @@
         }
 
         .btn-danger {
-            background-color: var(--danger-color);
-            color: white;
+            background: linear-gradient(135deg, #FF5252 0%, #B71C1C 100%);
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #FF3D3D 0%, #8E0E0E 100%);
         }
 
         .btn-info {
-            background-color: var(--info-color);
-            color: white;
+            background: linear-gradient(135deg, #00BCD4 0%, #006064 100%);
+        }
+
+        .btn-info:hover {
+            background: linear-gradient(135deg, #00ACC1 0%, #004D40 100%);
         }
 
         .btn:hover {
-            opacity: 0.9;
             transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, #9C27B0 0%, #4A148C 100%);
+        }
+
+        .btn-export:hover {
+            background: linear-gradient(135deg, #8E24AA 0%, #38006B 100%);
+        }
+
+        .btn-report {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .btn-balance {
+            background: linear-gradient(135deg, #FFD700 0%, #FF8C00 100%);
+            color: #333 !important;
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-balance:hover {
+            background: linear-gradient(135deg, #FFC600 0%, #E67E00 100%);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        #user-status-filter {
+            width: 200px;
+            margin-top: 8px;
+        }
+
+        #sort-merchants-btn {
+            margin-left: auto;
+            background-color: #6c757d;
+            color: white;
+        }
+
+        #sort-merchants-btn:hover {
+            background-color: #5a6268;
+        }
+
+        .search-container {
+            display: flex;
+            align-items: center;
+            margin-left: 10px;
+            gap: 5px;
+            top: 1px;
+        }
+
+        #merchant-search {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            transition: all 0.3s;
+            margin-top: 1px;
+        }
+
+        #merchant-search:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+            outline: none;
         }
 
         table {
@@ -229,6 +328,31 @@
             border-radius: 10px;
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
             position: relative;
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes modalFadeOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
         }
 
         .close-btn {
@@ -238,6 +362,13 @@
             font-size: 24px;
             cursor: pointer;
             color: #666;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
         }
 
         .form-group {
@@ -318,13 +449,12 @@
         }
 
         .form-control {
-            padding: 10px 12px;
+            padding: 8px 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
-            font-size: 16px;
             width: 100%;
             box-sizing: border-box;
-            margin-bottom: 10px;
+            margin-bottom: 6px;
         }
 
         .form-group {
@@ -335,6 +465,100 @@
             display: block;
             margin-bottom: 8px;
             font-weight: 500;
+        }
+
+        .action-btn {
+            min-width: 140px;
+            justify-content: center;
+            white-space: nowrap;
+            box-sizing: border-box;
+            margin: 2px;
+        }
+
+        .user-table td:last-child {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn-danger,
+        .btn-success,
+        .btn-balance {
+            min-width: 120px;
+            justify-content: center;
+            white-space: nowrap;
+            margin: 2px;
+            box-sizing: border-box;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00C851 0%, #0077B6 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #00A844 0%, #005B8C 100%);
+        }
+
+
+        .sort-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .sort-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 120px;
+        }
+
+        .sort-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #5a6268 0%, #343a40 100%);
+        }
+
+        .sort-btn.active {
+            background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+        }
+
+        .sort-btn.active:hover {
+            background: linear-gradient(135deg, #43A047 0%, #1B5E20 100%);
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            opacity: 0.9;
+            transform: translateY(-2px);
         }
 
         @media (max-width: 768px) {
@@ -354,8 +578,11 @@
             }
 
             .btn-secondary {
-                background-color: #6c757d;
-                color: white;
+                background: linear-gradient(135deg, #9E9E9E 0%, #424242 100%);
+            }
+
+            .btn-secondary:hover {
+                background: linear-gradient(135deg, #757575 0%, #212121 100%);
             }
 
             .btn-secondary:hover {
@@ -403,10 +630,10 @@
 
             .form-control {
                 width: 100%;
-                padding: 8px;
+                padding: 10px;
                 border: 1px solid #ccc;
                 border-radius: 4px;
-                font-size: 16px;
+
             }
 
             .form-actions {
@@ -416,26 +643,32 @@
             }
 
             .btn {
-                padding: 10px 16px;
-                border: none;
-                border-radius: 4px;
+                display: inline-flex;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+                padding: 10px 18px;
+                border-radius: 6px;
                 cursor: pointer;
-                font-weight: bold;
                 transition: all 0.3s ease;
+                font-weight: 500;
+                border: none;
+                gap: 8px;
+                min-width: 120px;
+                box-sizing: border-box;
             }
 
             .btn-primary {
-                background-color: #007bff;
-                color: white;
+                background: linear-gradient(135deg, #2196F3 0%, #0D47A1 100%);
+            }
+
+            .btn-primary:hover {
+                background: linear-gradient(135deg, #1E88E5 0%, #0A3576 100%);
             }
 
             .btn-secondary {
                 background-color: #6c757d;
                 color: white;
-            }
-
-            .btn:hover {
-                opacity: 0.9;
             }
 
             .alert {
@@ -453,6 +686,25 @@
                 background-color: #f8d7da;
                 color: #721c24;
             }
+
+            .modal {
+                background: rgba(0, 0, 0, 0.7);
+                backdrop-filter: blur(3px);
+            }
+
+            @keyframes highlight-update {
+                0% {
+                    background-color: rgba(76, 175, 80, 0.1);
+                }
+
+                100% {
+                    background-color: transparent;
+                }
+            }
+
+            .updated-row {
+                animation: highlight-update 1.5s ease-out;
+            }
         }
     </style>
 </head>
@@ -466,6 +718,7 @@
             <button class="tab-btn" data-tab="merchants">Мерчанты</button>
             <button class="tab-btn" data-tab="subscriptions">Подписки</button>
             <button class="tab-btn" data-tab="salary">Зарплатные дни</button>
+            <button class="tab-btn" data-tab="backups">Бэкапы</button>
         </div>
 
         <div id="users" class="tab-content active">
@@ -474,11 +727,16 @@
                     <span id="users-loading" class="loading" style="display: none;"></span>
                     Показать пользователей
                 </button>
-                <button onclick="exportUsers()">📄 Экспортировать в Excel</button>
+                <select id="user-status-filter" onchange="applyUserFilter()" class="form-control">
+                    <option value="">Все пользователи</option>
+                    <option value="1">Активные</option>
+                    <option value="0">Заблокированные</option>
+                </select>
+                <button class="btn btn-export" onclick="exportUsers()"><i class="fas fa-file-excel"></i> Экспортировать
+                    в Excel</button>
+                <button class="btn btn-report" onclick="generateUserReportExcel()"><i class="fas fa-chart-bar"></i>
+                    Сформировать отчет</button>
             </div>
-
-            <div id="users-alert" class="alert"></div>
-
             <div id="users-table" class="user-table" style="display: none;">
                 <table>
                     <thead>
@@ -497,16 +755,27 @@
 
         <div id="merchants" class="tab-content">
             <div class="action-buttons">
-                <button class="btn btn-primary" onclick="loadMerchants()">
-                    <span id="merchants-loading" class="loading" style="display: none;"></span>
-                    Показать мерчантов
+                <div class="merchant-search-group">
+                    <button class="btn btn-primary" onclick="loadMerchants()">
+                        <span id="merchants-loading" class="loading" style="display: none;"></span>
+                        Показать мерчантов
+                    </button>
+                    <div class="search-container">
+                        <input type="text" id="merchant-search" class="form-control" placeholder="Поиск по имени..."
+                            oninput="filterMerchants()" style="width: 200px;">
+                        <button class="btn btn-secondary" onclick="clearSearch()">Очистить</button>
+                    </div>
+                </div>
+                <button class="btn btn-info" id="sort-merchants-btn" onclick="toggleMerchantSort()">
+                    Сортировка: А-Я
                 </button>
-                <button class="btn btn-success" onclick="showAddMerchantModal()">Добавить мерчанта</button>
-                <button class="btn btn-warning" onclick="exportMerchants()">📄 Экспортировать мерчантов в Excel</button>
+                <button class="btn btn-success" onclick="showAddMerchantModal()"><i class="fas fa-plus-circle"></i>
+                    Добавить мерчанта</button>
+                <button class="btn btn-export" onclick="exportMerchants()"><i class="fas fa-file-excel"></i>
+                    Экспортировать
+                    в Excel</button>
             </div>
-
             <div id="merchants-alert" class="alert" style="display: none;"></div>
-
             <div id="merchants-table" style="display: none;">
                 <table class="merchant-table">
                     <thead>
@@ -527,7 +796,10 @@
                     <span id="subscriptions-loading" class="loading" style="display: none;"></span>
                     Показать подписки
                 </button>
-                <!-- <button onclick="exportSubscriptions()">📄 Экспортировать в Excel</button> -->
+                <button class="btn btn-success" onclick="showAddSubscriptionModal()">Добавить подписку</button>
+                <button class="btn btn-export" onclick="exportSubscriptions()"><i class="fas fa-file-excel"></i>
+                    Экспортировать
+                    в Excel</button>
             </div>
 
             <div id="subscriptions-alert" class="alert"></div>
@@ -553,11 +825,20 @@
                     <span id="salary-loading" class="loading" style="display: none;"></span>
                     Показать зарплатные дни
                 </button>
+                <button class="btn btn-export" onclick="exportSalaryDays()"><i class="fas fa-file-excel"></i>
+                    Экспортировать
+                    в Excel</button>
             </div>
 
             <div id="salary-alert" class="alert"></div>
 
             <div id="salary-table" style="display: none;">
+                <div class="sort-controls">
+                    <button id="sort-asc-btn" class="sort-btn" onclick="sortSalaryDays('asc')">По возрастанию</button>
+                    <button id="sort-desc-btn" class="sort-btn" onclick="sortSalaryDays('desc')">По убыванию</button>
+                    <button id="sort-reset-btn" class="sort-btn" onclick="sortSalaryDays('none')">Сбросить
+                        сортировку</button>
+                </div>
                 <table>
                     <thead>
                         <tr>
@@ -567,6 +848,35 @@
                         </tr>
                     </thead>
                     <tbody id="salary-list"></tbody>
+                </table>
+            </div>
+        </div>
+
+
+        <div id="backups" class="tab-content">
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="loadBackups()">
+                    <span id="backups-loading" class="loading" style="display: none;"></span>
+                    Показать бэкапы
+                </button>
+                <button class="btn btn-success" onclick="showCreateBackupModal()">Создать бэкап</button>
+            </div>
+
+            <div id="backups-alert" class="alert"></div>
+
+            <div id="backups-table" style="display: none;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Имя файла</th>
+                            <th>Дата создания</th>
+                            <th>Размер</th>
+                            <th>Описание</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="backups-list"></tbody>
                 </table>
             </div>
         </div>
@@ -586,6 +896,106 @@
                     <button type="submit" class="btn btn-primary">
                         <span id="merchant-submit-loading" class="loading" style="display: none;"></span>
                         Создать мерчанта </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="edit-merchant-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="hideEditMerchantModal()">&times;</span>
+            <h2>Редактировать мерчанта</h2>
+            <div id="edit-merchant-form-alert" class="alert" style="display: none;"></div>
+            <form id="edit-merchant-form">
+                <input type="hidden" id="edit-merchant-id">
+                <div class="form-group">
+                    <label for="edit-merchant-name">Имя мерчанта:</label>
+                    <input type="text" id="edit-merchant-name" class="form-control" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideEditMerchantModal()">Отмена</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="salary-alert" class="alert" style="display: none;"></div>
+    <div id="edit-salary-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="hideEditSalaryModal()">&times;</span>
+            <h2>Изменить зарплатный день</h2>
+            <div id="salary-form-alert" class="alert" style="display: none;"></div>
+            <form id="edit-salary-form">
+                <input type="hidden" id="salary-user-id">
+                <div class="form-group">
+                    <label for="salary-day">Зарплатный день (1-31):</label>
+                    <input type="number" id="salary-day" class="form-control" min="1" max="31" required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideEditSalaryModal()">Отмена</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="add-subscription-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="hideAddSubscriptionModal()">&times;</span>
+            <h2>Добавить новую подписку</h2>
+            <div id="add-subscription-alert" class="alert" style="display: none;"></div>
+            <form id="add-subscription-form">
+                <div class="form-group">
+                    <label for="subscription-name">Название подписки:</label>
+                    <input type="text" id="subscription-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Месячная цена (RUB):</label>
+                    <input type="number" id="add-monthly-price" class="form-control" required min="0">
+                </div>
+                <div class="form-group">
+                    <label>Годовая цена (RUB):</label>
+                    <input type="number" id="add-yearly-price" class="form-control" required min="0">
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Добавить подписку</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="confirm-delete-modal" class="modal">
+        <div class="modal-content">
+            <h2>Подтверждение удаления</h2>
+            <p id="delete-confirmation-message">Вы уверены, что хотите удалить эту подписку?</p>
+            <div class="form-actions">
+                <button class="btn btn-danger action-btn" onclick="confirmDeleteSubscription()">Удалить</button>
+                <button class="btn btn-secondary" onclick="hideDeleteModal()">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="create-backup-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-btn" onclick="hideCreateBackupModal()">&times;</span>
+            <h2>Создать новый бэкап</h2>
+
+            <div id="backup-form-alert" class="alert" style="display: none;"></div>
+
+            <form id="create-backup-form">
+                <div class="form-group">
+                    <label for="backup-description">Описание:</label>
+                    <input type="text" id="backup-description" class="form-control"
+                        placeholder="Введите описание бэкапа">
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <span id="backup-submit-loading" class="loading" style="display: none;"></span>
+                        Создать бэкап
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="hideCreateBackupModal()">Отмена</button>
                 </div>
             </form>
         </div>
@@ -611,54 +1021,55 @@
 
             <div class="form-group">
                 <button type="button" class="btn btn-primary" onclick="handleUpdateSubscription()">
-                    <span id="subscription-submit-loading" class="loading"></span>
                     Сохранить изменения
-                </button>
-                <button onclick="checkSubscriptionId()" style="position: fixed; top: 10px; left: 10px; z-index: 1000;">
-                    Проверить ID
                 </button>
             </div>
         </div>
     </div>
-
-    <div id="edit-merchant-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="hideEditMerchantModal()">&times;</span>
-            <h2>Редактировать мерчанта</h2>
-            <div id="edit-merchant-form-alert" class="alert" style="display: none;"></div>
-            <form id="edit-merchant-form">
-                <input type="hidden" id="edit-merchant-id">
-                <div class="form-group">
-                    <label for="edit-merchant-name">Имя мерчанта:</label>
-                    <input type="text" id="edit-merchant-name" class="form-control" required>
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Сохранить</button>
-                    <button type="button" class="btn btn-secondary" onclick="hideEditMerchantModal()">Отмена</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-
     <script>
+        function generateUserReportExcel() {
+            window.open('/api/reports/users/excel');
+        }
 
-        // function exportSubscriptions() {
-        //     window.open('/api/export/subscriptions');
-        // }
+        function exportSubscriptions() {
+            window.open('/api/export/subscriptions');
+        }
+
+        function exportSalaryDays() {
+            window.open('/api/export/salary-days');
+        }
+        const userTableState = {
+            visible: false,
+            loaded: false,
+            data: [],
+            filter: null,
+            sortDirection: 'asc'
+        };
+
         const merchantTableState = {
             visible: false,
             loaded: false,
-            data: []
+            data: [],
+            filteredData: [],
+            sortDirection: 'asc',
+            searchQuery: ''
         };
 
         const subscriptionsTableState = {
             visible: false,
             loaded: false,
-            data: []
+            data: [],
+            sortDirection: 'asc'
         };
 
         const salaryTableState = {
+            visible: false,
+            loaded: false,
+            data: [],
+            sortDirection: 'none'
+        };
+
+        const backupsTableState = {
             visible: false,
             loaded: false,
             data: []
@@ -682,7 +1093,8 @@
             users: { loaded: false, data: [] },
             merchants: { loaded: false, data: [] },
             subscriptions: { loaded: false, data: [] },
-            salary: { loaded: false, data: [] }
+            salary: { loaded: false, data: [] },
+            backups: { loaded: false, data: [] }
         };
 
         let currentTab = 'users';
@@ -730,10 +1142,6 @@
             }
         }
 
-        function checkSubscriptionId() {
-            const id = document.getElementById('subscription-id').value;
-            alert(`Текущий ID подписки: ${id || 'не установлен'}`);
-        }
         async function loadTabData(tabId) {
             try {
                 let response;
@@ -764,136 +1172,163 @@
             }
         }
 
-        const userTableState = {
-            visible: false,
-            loaded: false,
-            data: []
-        };
-
         async function toggleUsersTable() {
             const table = document.getElementById('users-table');
             const button = document.querySelector('#users .btn-primary');
-            const alertBox = document.getElementById('users-alert');
+
+            if (!table || !button) {
+                console.error("Не найдены элементы таблицы или кнопки");
+                return;
+            }
+
+            if (table.style.display === 'block' || table.style.display === '') {
+                table.style.display = 'none';
+                button.textContent = 'Показать пользователей';
+                userTableState.visible = false;
+                return;
+            }
 
             try {
-                if (userTableState.visible) {
-                    table.style.display = 'none';
-                    button.textContent = 'Показать пользователей';
-                    userTableState.visible = false;
-                    return;
-                }
-
                 if (!userTableState.loaded) {
                     showLoading('users-loading');
-                    alertBox.style.display = 'none';
-
                     const response = await axios.get('/api/users');
                     if (!Array.isArray(response.data)) {
                         throw new Error('Неверный формат данных');
                     }
-
                     userTableState.data = response.data;
                     userTableState.loaded = true;
-                    renderUsers(userTableState.data);
                 }
 
+                applyUserFilter();
                 table.style.display = 'block';
                 button.textContent = 'Скрыть пользователей';
                 userTableState.visible = true;
 
             } catch (error) {
                 console.error('Ошибка загрузки пользователей:', error);
-                alertBox.textContent = `Ошибка: ${error.response?.data?.error || error.message}`;
-                alertBox.className = 'alert alert-error';
-                alertBox.style.display = 'block';
-                table.style.display = 'none';
-                button.textContent = 'Показать пользователей';
-                userTableState.visible = false;
+                showAlert(`Ошибка: ${error.response?.data?.error || error.message}`, 'error');
             } finally {
                 hideLoading('users-loading');
             }
         }
 
+
+        function applyUserFilter() {
+            const filterSelect = document.getElementById('user-status-filter');
+            const selectedFilter = filterSelect ? filterSelect.value : "";
+
+            let filteredUsers = userTableState.data;
+            if (selectedFilter !== "") {
+                filteredUsers = userTableState.data.filter(user =>
+                    user.status.toString() === selectedFilter
+                );
+            }
+
+            renderUsers(filteredUsers);
+        }
+
+        document.getElementById('user-status-filter').addEventListener('change', function () {
+            if (userTableState.visible) {
+                applyUserFilter();
+            }
+        });
+
         function renderUsers(users) {
             const tbody = document.getElementById('users-list');
             tbody.innerHTML = '';
-            users.forEach(user => {
+
+            if (!users || users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5">Нет пользователей по заданным критериям</td></tr>';
+                return;
+            }
+
+            let sortedUsers = [...users];
+            if (userTableState.sortDirection === 'asc') {
+                sortedUsers.sort((a, b) => a.id - b.id);
+            } else if (userTableState.sortDirection === 'desc') {
+                sortedUsers.sort((a, b) => b.id - a.id);
+            }
+
+            sortedUsers.forEach(user => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-        <td data-id="${user.id}">${user.id}</td>
-        <td>${user.balance.toFixed(2)}</td>
-        <td>${user.ice.toFixed(2)}</td>
-        <td>
-          <span class="badge ${user.status === 1 ? 'badge-success' : 'badge-danger'}">
-            ${user.status === 1 ? 'Активен' : 'Заблокирован'}
-          </span>
-        </td>
-        <td>
-          ${user.status === 1
-                        ? `<button class="btn btn-danger" onclick="blockUser(${user.id})">Заблокировать</button>`
-                        : `<button class="btn btn-secondary" onclick="unblockUser(${user.id})">Разблокировать</button>`}
-            <button onclick="promptUpdateBalance(${user.id})">Изменить баланс</button>
-        </td>`;
+            <td data-id="${user.id}">${user.id}</td>
+            <td>${user.balance.toFixed(2)}</td>
+            <td>${user.ice.toFixed(2)}</td>
+            <td>
+                <span class="badge ${user.status === 1 ? 'badge-success' : 'badge-danger'}">
+                    ${user.status === 1 ? 'Активен' : 'Заблокирован'}
+                </span>
+            </td>
+            <td style="white-space: nowrap;">
+                ${user.status === 1
+                        ? `<button class="btn btn-danger action-btn" onclick="blockUser(${user.id})">Заблокировать</button>`
+                        : `<button class="btn btn-success action-btn" onclick="unblockUser(${user.id})">Разблокировать</button>`
+                    }
+                <button class="btn btn-balance action-btn" onclick="promptUpdateBalance(${user.id})">Изменить баланс</button>
+            </td>
+        `;
                 tbody.appendChild(row);
             });
+
+            updateSortButtons('users');
         }
 
         async function blockUser(userId) {
-            const alertBox = document.getElementById('users-alert');
             const isConfirmed = confirm(`Вы уверены, что хотите заблокировать пользователя ${userId}?`);
             if (!isConfirmed) return;
 
             try {
-                const response = await axios.post(`/api/users/block/${userId}`);
+                await axios.post(`/api/users/block/${userId}`);
 
-                const userIndex = appState.users.data.findIndex(u => u.id === userId);
+                const userIndex = userTableState.data.findIndex(u => u.id == userId);
                 if (userIndex !== -1) {
-                    appState.users.data[userIndex].status = 0;
+                    userTableState.data[userIndex].status = 0;
                 }
-                const row = document.querySelector(`tr:has(td[data-id="${userId}"])`);
-                if (row) {
-                    row.querySelector('.badge').className = 'badge badge-danger';
-                    row.querySelector('.badge').textContent = 'Заблокирован';
-                    const btn = row.querySelector('button');
-                    btn.className = 'btn btn-secondary';
-                    btn.textContent = 'Разблокировать';
-                    btn.setAttribute('onclick', `unblockUser(${userId})`);
-                }
+                renderUsersWithFilter();
+
             } catch (error) {
-                console.error('Block error:', error);
-                showAlert(alertBox, `Ошибка: ${error.response?.data?.error || error.message}`, 'error');
+                console.error('Ошибка блокировки:', error);
+                showAlert(`Ошибка: ${error.response?.data?.error || error.message}`, 'error');
             }
         }
 
         async function unblockUser(userId) {
-            const alertBox = document.getElementById('users-alert');
-
             const isConfirmed = confirm(`Вы уверены, что хотите разблокировать пользователя ${userId}?`);
             if (!isConfirmed) return;
 
             try {
-                const response = await axios.post(`/api/users/unblock/${userId}`);
-
-                const userIndex = appState.users.data.findIndex(u => u.id === userId);
+                await axios.post(`/api/users/unblock/${userId}`);
+                const userIndex = userTableState.data.findIndex(u => u.id == userId);
                 if (userIndex !== -1) {
-                    appState.users.data[userIndex].status = 1;
+                    userTableState.data[userIndex].status = 1;
                 }
-
-                const row = document.querySelector(`tr:has(td[data-id="${userId}"])`);
-                if (row) {
-                    row.querySelector('.badge').className = 'badge badge-success';
-                    row.querySelector('.badge').textContent = 'Активен';
-                    const btn = row.querySelector('button');
-                    btn.className = 'btn btn-danger';
-                    btn.textContent = 'Заблокировать';
-                    btn.setAttribute('onclick', `blockUser(${userId})`);
-                }
-
-
+                renderUsersWithFilter();
             } catch (error) {
-                console.error('Unblock error:', error);
-                showAlert(alertBox, `Ошибка: ${error.response?.data?.error || error.message}`, 'error');
+                console.error('Ошибка разблокировки:', error);
+                showAlert(`Ошибка: ${error.response?.data?.error || error.message}`, 'error');
             }
+        }
+
+        function updateTableRowStatus(userId, newStatus) {
+            const row = document.querySelector(`#users-list tr td[data-id='${userId}']`)?.parentElement;
+            if (!row) {
+                console.warn('Строка пользователя не найдена');
+                return;
+            }
+            const statusCell = row.querySelectorAll('td')[3];
+            const actionCell = row.querySelectorAll('td')[4];
+            statusCell.innerHTML = `
+        <span class="badge ${newStatus === 1 ? 'badge-success' : 'badge-danger'}">
+            ${newStatus === 1 ? 'Активен' : 'Заблокирован'}
+        </span>
+        `;
+            actionCell.innerHTML = `
+        ${newStatus === 1
+                    ? `<button class="btn btn-danger" onclick="blockUser(${userId})">Заблокировать</button>`
+                    : `<button class="btn btn-secondary" onclick="unblockUser(${userId})">Разблокировать</button>`}
+        <button onclick="promptUpdateBalance(${userId})">Изменить баланс</button>
+        `;
         }
 
         async function promptUpdateBalance(userId) {
@@ -903,11 +1338,22 @@
             updateBalance(userId, parseFloat(amount));
         }
 
+        function renderUsersWithFilter() {
+            const filterSelect = document.getElementById('user-status-filter');
+            const selectedFilter = filterSelect ? filterSelect.value : "";
+            let filteredUsers = userTableState.data;
+            if (selectedFilter !== "") {
+                filteredUsers = userTableState.data.filter(user =>
+                    user.status === parseInt(selectedFilter)
+                );
+            }
+            renderUsers(filteredUsers);
+        }
+
         async function showUsers() {
             const table = document.getElementById('users-table');
             const button = document.querySelector('#users .btn-primary');
             const alertBox = document.getElementById('users-alert');
-
             try {
                 if (userTableState.visible) {
                     table.style.display = 'none';
@@ -915,7 +1361,6 @@
                     userTableState.visible = false;
                     return;
                 }
-
                 if (!userTableState.loaded) {
                     showLoading('users-loading');
                     alertBox.style.display = 'none';
@@ -924,10 +1369,8 @@
                     if (!Array.isArray(response.data)) {
                         throw new Error('Неверный формат данных');
                     }
-
                     userTableState.data = response.data;
                     userTableState.loaded = true;
-
                     renderUsers(userTableState.data);
                 }
 
@@ -954,20 +1397,16 @@
                     id: userId,
                     amount: amount
                 });
-
                 const { newBalance } = response.data;
-
                 const row = document.querySelector(`#users-list tr td[data-id='${userId}']`)?.parentElement;
                 if (!row) {
                     console.warn('Строка пользователя не найдена');
                     return;
                 }
-
                 const balanceCell = row.querySelectorAll('td')[1];
                 if (balanceCell) {
                     balanceCell.textContent = newBalance.toFixed(2);
                 }
-
                 alert(`Баланс успешно обновлен: ${newBalance.toFixed(2)}`);
             } catch (error) {
                 console.error('Ошибка при обновлении баланса:', error);
@@ -975,16 +1414,15 @@
             }
         }
 
-        function showAlert(element, message, type = 'success') {
-            if (!element) return;
-
-            element.textContent = message;
-            element.className = `alert alert-${type}`;
-            element.style.display = 'block';
-
+        function showAlert(elementId, message, type = 'success') {
+            const alertBox = document.getElementById(elementId);
+            if (!alertBox) return;
+            alertBox.textContent = message;
+            alertBox.className = `alert alert-${type}`;
+            alertBox.style.display = 'block';
             setTimeout(() => {
-                element.style.display = 'none';
-            }, 5000);
+                alertBox.style.display = 'none';
+            }, 3000);
         }
 
         async function loadMerchants() {
@@ -992,37 +1430,40 @@
             const button = document.querySelector('#merchants .btn-primary');
             const alertBox = document.getElementById('merchants-alert');
 
+            if (!table || !button) {
+                console.error("Не найдены элементы таблицы или кнопки");
+                return;
+            }
+
+            if (table.style.display === 'block' || table.style.display === '') {
+                table.style.display = 'none';
+                button.textContent = 'Показать мерчантов';
+                merchantTableState.visible = false;
+                return;
+            }
+
             try {
-                if (merchantTableState.visible) {
-                    table.style.display = 'none';
-                    button.textContent = 'Показать мерчантов';
-                    merchantTableState.visible = false;
-                    return;
+                showLoading('merchants-loading');
+                alertBox.style.display = 'none';
+
+                const response = await axios.get('/api/merchants');
+                merchantTableState.data = response.data;
+                merchantTableState.filteredData = [...merchantTableState.data];
+                merchantTableState.loaded = true;
+                if (merchantTableState.searchQuery) {
+                    filterMerchants();
+                } else {
+                    sortMerchants();
                 }
-
-                if (!merchantTableState.loaded) {
-                    showLoading('merchants-loading');
-                    alertBox.style.display = 'none';
-
-                    const response = await axios.get('/api/merchants');
-                    merchantTableState.data = response.data;
-                    merchantTableState.loaded = true;
-
-                    renderMerchants(merchantTableState.data);
-                }
-
+                renderMerchants(merchantTableState.filteredData);
                 table.style.display = 'block';
                 button.textContent = 'Скрыть мерчантов';
                 merchantTableState.visible = true;
-
             } catch (error) {
                 console.error('Ошибка загрузки мерчантов:', error);
                 alertBox.textContent = `Ошибка: ${error.response?.data?.error || error.message}`;
                 alertBox.className = 'alert alert-error';
                 alertBox.style.display = 'block';
-                table.style.display = 'none';
-                button.textContent = 'Показать мерчантов';
-                merchantTableState.visible = false;
             } finally {
                 hideLoading('merchants-loading');
             }
@@ -1032,28 +1473,92 @@
             const tbody = document.getElementById('merchants-list');
             tbody.innerHTML = '';
 
-            merchants.forEach(merchant => {
+            if (!merchants || merchants.length === 0) {
+                tbody.innerHTML = `
+            <tr><td colspan="3" style="text-align: center;">
+                ${merchantTableState.searchQuery ?
+                        'Ничего не найдено по вашему запросу' :
+                        'Нет данных о мерчантах'}
+            </td></tr>
+        `;
+                return;
+            }
+            let sortedMerchants = [...merchants];
+            if (merchantTableState.sortDirection === 'asc') {
+                sortedMerchants.sort((a, b) => a.id - b.id);
+            } else if (merchantTableState.sortDirection === 'desc') {
+                sortedMerchants.sort((a, b) => b.id - a.id);
+            }
+
+            sortedMerchants.forEach(merchant => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-            <td>${merchant.id}</td>
-            <td>${merchant.name}</td>
-            <td>
-<button class="btn btn-info" onclick="showEditMerchantModal(${merchant.id}, '${merchant.name.replace(/'/g, "\\'")}')">
-            Редактировать
-        </button>                <button class="btn btn-danger" onclick="deleteMerchant(${merchant.id})">
-                    Удалить
-                </button>
-            </td>
-        `;
+                    <td>${merchant.id}</td>
+                    <td>${merchant.name}</td>
+                    <td>
+                        <button class="btn btn-info" onclick="showEditMerchantModal(${merchant.id}, '${merchant.name.replace(/'/g, "\\'")}')">
+                            Редактировать
+                        </button>
+                        <button class="btn btn-danger" onclick="deleteMerchant(${merchant.id})">
+                            Удалить
+                        </button>
+                    </td>
+                `;
                 tbody.appendChild(row);
             });
-            document.querySelectorAll('.edit-merchant-btn').forEach(btn => {
-                btn.addEventListener('click', function () {
-                    const id = this.getAttribute('data-id');
-                    const name = this.getAttribute('data-name');
-                    showEditMerchantModal(id, name);
-                });
+
+            updateSortButtons('merchants');
+        }
+
+        function toggleMerchantSort() {
+            const sortBtn = document.getElementById('sort-merchants-btn');
+
+            if (merchantTableState.sortDirection === 'asc') {
+                merchantTableState.sortDirection = 'desc';
+                sortBtn.textContent = 'Сортировка: Я-А';
+            } else {
+                merchantTableState.sortDirection = 'asc';
+                sortBtn.textContent = 'Сортировка: А-Я';
+            }
+            sortMerchants();
+            renderMerchants(merchantTableState.data);
+        }
+
+        function sortMerchants() {
+            const dataToSort = merchantTableState.searchQuery ?
+                merchantTableState.filteredData :
+                merchantTableState.data;
+            dataToSort.sort((a, b) => {
+                const nameA = a.name.toLowerCase();
+                const nameB = b.name.toLowerCase();
+                if (merchantTableState.sortDirection === 'asc') {
+                    return nameA.localeCompare(nameB);
+                } else {
+                    return nameB.localeCompare(nameA);
+                }
             });
+        }
+
+        function filterMerchants() {
+            const searchInput = document.getElementById('merchant-search');
+            merchantTableState.searchQuery = searchInput.value.toLowerCase().trim();
+            if (!merchantTableState.searchQuery) {
+                merchantTableState.filteredData = [...merchantTableState.data];
+            } else {
+                merchantTableState.filteredData = merchantTableState.data.filter(merchant =>
+                    merchant.name.toLowerCase().includes(merchantTableState.searchQuery)
+                );
+            }
+            sortMerchants();
+            renderMerchants(merchantTableState.filteredData);
+        }
+
+        function clearSearch() {
+            document.getElementById('merchant-search').value = '';
+            merchantTableState.searchQuery = '';
+            merchantTableState.filteredData = [...merchantTableState.data];
+            sortMerchants();
+            renderMerchants(merchantTableState.filteredData);
         }
 
         function exportMerchants() {
@@ -1071,27 +1576,26 @@
         }
 
         function showEditMerchantModal(id, name) {
-            console.log("Opening modal for merchant:", id, name);
-            console.log("Modal element:", document.getElementById('edit-merchant-modal'));
-            console.log("Current display style:",
-                window.getComputedStyle(document.getElementById('edit-merchant-modal')).display);
-
             const modal = document.getElementById('edit-merchant-modal');
-            document.getElementById('edit-merchant-id').value = id;
-            document.getElementById('edit-merchant-name').value = name;
-
+            const idInput = document.getElementById('edit-merchant-id');
+            const nameInput = document.getElementById('edit-merchant-name');
             const alertBox = document.getElementById('edit-merchant-form-alert');
+            idInput.value = id;
+            nameInput.value = name;
             alertBox.style.display = 'none';
-
             modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-
-            console.log("Modal should be visible now");
         }
 
         function hideEditMerchantModal() {
-            document.getElementById('edit-merchant-modal').style.display = 'none';
-            document.body.style.overflow = 'auto'; // Разблокируем прокрутку страницы
+            const modal = document.getElementById('edit-merchant-modal');
+            if (modal) {
+                modal.style.animation = 'modalFadeOut 0.3s ease-out';
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                    modal.style.animation = '';
+                }, 300);
+            }
+            document.getElementById('edit-merchant-form').reset();
         }
         document.getElementById('edit-merchant-form').addEventListener('submit', async function (e) {
             e.preventDefault();
@@ -1108,22 +1612,19 @@
             }
 
             try {
-                const response = await axios.put(`/api/merchants/${id}`, {
-                    merchant_name: name
-                });
+                const merchantIndex = merchantTableState.data.findIndex(m => m.id == id);
+                if (merchantIndex !== -1) {
+                    merchantTableState.data[merchantIndex].name = name;
+                    renderMerchants(merchantTableState.data);
+                }
+                hideEditMerchantModal();
+                const response = await axios.put(`/api/merchants/${id}`, { merchant_name: name });
+                await loadMerchants();
 
-                alertBox.textContent = 'Мерчант успешно обновлен';
-                alertBox.className = 'alert alert-success';
-                alertBox.style.display = 'block';
-
-                loadMerchants();
-
-                setTimeout(hideEditMerchantModal, 1500);
             } catch (error) {
                 console.error('Ошибка обновления мерчанта:', error);
-                alertBox.textContent = `Ошибка: ${error.response?.data?.error || error.message}`;
-                alertBox.className = 'alert alert-error';
-                alertBox.style.display = 'block';
+                showAlert('merchants-alert', `Ошибка: ${error.response?.data?.error || error.message}`, 'error');
+                await loadMerchants();
             }
         });
 
@@ -1161,7 +1662,6 @@
                     merchant_name: merchantName
                 });
 
-                alertBox.textContent = 'Мерчант успешно добавлен';
                 alertBox.className = 'alert alert-success';
                 alertBox.style.display = 'block';
 
@@ -1182,12 +1682,7 @@
             if (confirm(`Вы уверены, что хотите удалить мерчанта ${merchantId}?`)) {
                 try {
                     await axios.delete(`/api/merchants/${merchantId}`);
-                    showAlert('merchants-alert', `Мерчант ${merchantId} успешно удален`, 'success');
                     loadMerchants();
-
-                    if (currentTab === 'users') {
-                        loadUsers();
-                    }
                 } catch (error) {
                     console.error('Ошибка удаления:', error);
                     showAlert('merchants-alert', `Ошибка: ${error.response?.data?.error || error.message}`, 'error');
@@ -1195,68 +1690,70 @@
             }
         }
 
-        async function loadSubscriptions() {
+        async function loadSubscriptions(forceReload = false) {
             const table = document.getElementById('subscriptions-table');
             const button = document.querySelector('#subscriptions .btn-primary');
             const alertBox = document.getElementById('subscriptions-alert');
 
             try {
-                if (subscriptionsTableState.visible) {
+                if (!forceReload && subscriptionsTableState.visible) {
                     table.style.display = 'none';
                     button.textContent = 'Показать подписки';
                     subscriptionsTableState.visible = false;
                     return;
                 }
+                const loadingElement = document.getElementById('subscriptions-loading');
+                if (loadingElement) loadingElement.style.display = 'inline-block';
 
-                if (!subscriptionsTableState.loaded) {
-                    showLoading('subscriptions-loading');
-                    alertBox.style.display = 'none';
-
-                    const response = await axios.get(`${API_BASE_URL}/api/subscriptions`);
-                    subscriptionsTableState.data = response.data.map(sub => {
-                        try {
-                            return {
-                                id: sub.sub_id,
-                                name: sub.name,
-                                price: typeof sub.price === 'string' ? JSON.parse(sub.price) : sub.price
-                            };
-                        } catch (e) {
-                            console.error('Ошибка парсинга цены:', e);
-                            return {
-                                id: sub.sub_id,
-                                name: sub.name,
-                                price: { month: 0, year: 0 }
-                            };
-                        }
+                if (forceReload || !subscriptionsTableState.loaded) {
+                    const response = await axios.get('/api/subscriptions', {
+                        params: { _: new Date().getTime() },
+                        headers: { 'Cache-Control': 'no-cache' }
                     });
+                    subscriptionsTableState.data = response.data;
                     subscriptionsTableState.loaded = true;
-
-                    renderSubscriptions(subscriptionsTableState.data);
                 }
 
+                renderSubscriptions(subscriptionsTableState.data);
                 table.style.display = 'block';
                 button.textContent = 'Скрыть подписки';
                 subscriptionsTableState.visible = true;
 
             } catch (error) {
-                console.error('Ошибка загрузки:', error);
+                console.error('Ошибка загрузки подписок:', error);
                 alertBox.textContent = `Ошибка: ${error.message}`;
                 alertBox.className = 'alert alert-error';
                 alertBox.style.display = 'block';
-                table.style.display = 'none';
-                button.textContent = 'Показать подписки';
-                subscriptionsTableState.visible = false;
             } finally {
-                hideLoading('subscriptions-loading');
+                const loadingElement = document.getElementById('subscriptions-loading');
+                if (loadingElement) loadingElement.style.display = 'none';
             }
         }
+
+        document.querySelector('.tab-btn[data-tab="subscriptions"]').addEventListener('click', () => {
+            if (subscriptionsTableState.loaded) {
+                const table = document.getElementById('subscriptions-table');
+                table.style.display = 'block';
+            }
+        });
 
         function renderSubscriptions(subscriptions) {
             const tbody = document.getElementById('subscriptions-list');
             tbody.innerHTML = '';
 
-            subscriptions.forEach(sub => {
-                const row = document.createElement('tr');
+            if (!subscriptions || subscriptions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4">Нет доступных подписок</td></tr>';
+                return;
+            }
+
+            let sortedSubs = [...subscriptions];
+            if (subscriptionsTableState.sortDirection === 'asc') {
+                sortedSubs.sort((a, b) => (a.id || a.sub_id) - (b.id || b.sub_id));
+            } else if (subscriptionsTableState.sortDirection === 'desc') {
+                sortedSubs.sort((a, b) => (b.id || b.sub_id) - (a.id || a.sub_id));
+            }
+
+            sortedSubs.forEach(sub => {
                 const subId = sub.id || sub.sub_id;
                 let priceData = sub.price;
 
@@ -1269,6 +1766,7 @@
                     }
                 }
 
+                const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${subId}</td>
                     <td>${sub.name}</td>
@@ -1277,43 +1775,43 @@
                         <strong>Годовая:</strong> ${priceData.year} RUB
                     </td>
                     <td>
-                        <button class="btn btn-info edit-sub-btn" 
-                                data-sub-id="${subId}"
-                                data-price='${JSON.stringify(priceData)}'>
+                        <button class="btn btn-info" onclick="showEditSubscriptionModal(${subId})">
                             Изменить цены
+                        </button>
+                        <button class="btn btn-danger" onclick="showDeleteModal(${subId}, '${sub.name.replace(/'/g, "\\'")}')">
+                            Удалить
                         </button>
                     </td>
                 `;
                 tbody.appendChild(row);
             });
 
+            updateSortButtons('subscriptions');
         }
 
-        function showEditSubscriptionModal(subId, priceData) {
-            console.log("Received subId:", subId, "Type:", typeof subId);
-            console.log("Received priceData:", priceData);
-
+        function showEditSubscriptionModal(subId) {
             try {
-                subId = parseInt(subId);
-                if (isNaN(subId)) {
-                    throw new Error("Неверный ID подписки: значение не является числом");
-                }
+                const subscription = subscriptionsTableState.data.find(
+                    sub => sub.id == subId || sub.sub_id == subId
+                );
 
-                if (subId <= 0) {
-                    throw new Error("Неверный ID подписки: значение должно быть положительным");
+                if (!subscription) {
+                    throw new Error("Подписка не найдена");
                 }
-
-                if (!priceData || typeof priceData !== 'object') {
-                    priceData = { month: 0, year: 0 };
+                let priceData = subscription.price;
+                if (typeof priceData === 'string') {
+                    try {
+                        priceData = JSON.parse(priceData);
+                    } catch (e) {
+                        console.error('Ошибка парсинга цены:', e);
+                        priceData = { month: 0, year: 0 };
+                    }
                 }
-
                 document.getElementById('subscription-id').value = subId;
                 document.getElementById('monthly-price').value = priceData.month || '';
                 document.getElementById('yearly-price').value = priceData.year || '';
                 document.getElementById('subscription-form-alert').style.display = 'none';
                 document.getElementById('edit-subscription-modal').style.display = 'flex';
-
-                console.log("Modal opened successfully for subId:", subId);
             } catch (error) {
                 console.error("Ошибка открытия модального окна:", error);
                 alert(error.message);
@@ -1322,49 +1820,167 @@
 
         async function handleUpdateSubscription() {
             const subId = document.getElementById('subscription-id').value;
-            const monthlyPrice = document.getElementById('monthly-price').value;
-            const yearlyPrice = document.getElementById('yearly-price').value;
+            const monthlyPrice = parseFloat(document.getElementById('monthly-price').value);
+            const yearlyPrice = parseFloat(document.getElementById('yearly-price').value);
             const alertBox = document.getElementById('subscription-form-alert');
 
             try {
                 if (!subId) throw new Error("ID подписки не найден");
-                if (!monthlyPrice || !yearlyPrice) throw new Error("Все поля должны быть заполнены");
+                if (isNaN(monthlyPrice) || isNaN(yearlyPrice)) {
+                    throw new Error("Цены должны быть числами");
+                }
+                if (monthlyPrice <= 0 || yearlyPrice <= 0) {
+                    throw new Error("Цены должны быть положительными");
+                }
 
-                showLoading('subscription-submit-loading');
-
-                const apiUrl = `http://localhost:3000/api/subscriptions/${subId}/price`;
-                console.log("Отправка запроса на:", apiUrl);
-
-                const response = await axios.put(apiUrl, {
+                const response = await axios.post(`/api/subscriptions/${subId}/price`, {
                     price: {
-                        month: parseFloat(monthlyPrice),
-                        year: parseFloat(yearlyPrice)
+                        month: monthlyPrice,
+                        year: yearlyPrice
                     }
                 });
-
-                showAlert(alertBox, 'Цены успешно обновлены!', 'success');
-                await loadSubscriptions();
-                setTimeout(hideEditSubscriptionModal, 1500);
+                hideEditSubscriptionModal();
+                updateSubscriptionInTable(subId, monthlyPrice, yearlyPrice);
             } catch (error) {
-                console.error('Ошибка обновления:', {
-                    message: error.message,
-                    config: error.config
-                });
+                console.error('Ошибка обновления:', error);
+                showAlert(alertBox, `Ошибка: ${error.response?.data?.error || error.message}`, 'error');
+            }
+        }
 
-                let errorMessage = `Ошибка соединения с сервером. Проверьте:`;
-                errorMessage += `\nURL: ${error.config?.url}`;
-                errorMessage += `\nМетод: ${error.config?.method}`;
-                errorMessage += `\nОжидаемый URL: http://localhost:3000/api/subscriptions/[id]/price`;
 
-                showAlert(alertBox, errorMessage, 'error');
-            } finally {
-                hideLoading('subscription-submit-loading');
+        function updateSubscriptionInTable(subId, monthlyPrice, yearlyPrice) {
+            const subIndex = subscriptionsTableState.data.findIndex(sub => sub.id == subId || sub.sub_id == subId);
+            if (subIndex !== -1) {
+                subscriptionsTableState.data[subIndex].price = {
+                    month: monthlyPrice,
+                    year: yearlyPrice
+                };
+            }
+            const rows = document.querySelectorAll('#subscriptions-list tr');
+            for (const row of rows) {
+                const rowSubId = row.querySelector('td:first-child').textContent;
+                if (rowSubId === subId.toString()) {
+                    const priceCell = row.querySelector('td:nth-child(3)');
+                    priceCell.innerHTML = `
+                        <strong>Месячная:</strong> ${monthlyPrice} RUB<br>
+                        <strong>Годовая:</strong> ${yearlyPrice} RUB
+                    `;
+                    row.classList.add('updated-row');
+                    setTimeout(() => row.classList.remove('updated-row'), 1500);
+                    break;
+                }
             }
         }
 
         function hideEditSubscriptionModal() {
-            document.getElementById('edit-subscription-modal').style.display = 'none';
+            const modal = document.getElementById('edit-subscription-modal');
+            modal.style.display = 'none';
+            document.getElementById('subscription-form-alert').style.display = 'none';
         }
+
+        let subscriptionToDelete = null;
+
+        function showAddSubscriptionModal() {
+            document.getElementById('add-subscription-modal').style.display = 'flex';
+            document.getElementById('add-subscription-alert').style.display = 'none';
+            document.getElementById('add-subscription-form').reset();
+        }
+
+        function hideAddSubscriptionModal() {
+            document.getElementById('add-subscription-modal').style.display = 'none';
+        }
+
+        async function showDeleteModal(subId, subName) {
+            subscriptionToDelete = subId;
+            const modal = document.getElementById('confirm-delete-modal');
+            const message = document.getElementById('delete-confirmation-message');
+            message.textContent = `Вы уверены, что хотите удалить подписку "${subName}" (ID: ${subId})?`;
+            modal.style.display = 'flex';
+        }
+
+        function hideDeleteModal() {
+            document.getElementById('confirm-delete-modal').style.display = 'none';
+            subscriptionToDelete = null;
+        }
+
+        document.getElementById('add-subscription-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const name = document.getElementById('subscription-name').value.trim();
+            const monthlyPrice = parseFloat(document.getElementById('add-monthly-price').value);
+            const yearlyPrice = parseFloat(document.getElementById('add-yearly-price').value);
+            const alertBox = document.getElementById('add-subscription-alert');
+
+            if (!name || isNaN(monthlyPrice) || isNaN(yearlyPrice)) {
+                alertBox.textContent = 'Пожалуйста, заполните все поля корректно';
+                alertBox.className = 'alert alert-error';
+                alertBox.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await axios.post('/api/subscriptions', {
+                    name: name,
+                    price: {
+                        month: monthlyPrice,
+                        year: yearlyPrice
+                    }
+                });
+
+                subscriptionsTableState.data.unshift(response.data.data);
+                renderSubscriptions(subscriptionsTableState.data);
+                hideAddSubscriptionModal();
+
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alertBox.textContent = `Ошибка: ${error.response?.data?.error || error.message}`;
+                alertBox.className = 'alert alert-error';
+                alertBox.style.display = 'block';
+            }
+        });
+
+        async function confirmDeleteSubscription() {
+            if (!subscriptionToDelete) {
+                console.error('No subscription selected for deletion');
+                return;
+            }
+
+            try {
+                const loadingElement = document.getElementById('subscriptions-loading');
+                if (loadingElement) loadingElement.style.display = 'inline-block';
+
+                const response = await axios.delete(`/api/subscriptions/${subscriptionToDelete}`, {
+                    params: {
+                        _: new Date().getTime()
+                    }
+                });
+                subscriptionsTableState.loaded = false;
+                subscriptionsTableState.data = [];
+                await loadSubscriptions(true);
+            } catch (error) {
+                console.error('Delete error:', {
+                    message: error.message,
+                    response: error.response
+                });
+                let errorMessage = error.message;
+                if (error.response) {
+                    errorMessage = error.response.data?.error ||
+                        error.response.data?.message ||
+                        JSON.stringify(error.response.data);
+                }
+                showAlert('subscriptions-alert', `Ошибка: ${errorMessage}`, 'error');
+            } finally {
+                hideDeleteModal();
+                const loadingElement = document.getElementById('subscriptions-loading');
+                if (loadingElement) loadingElement.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('click', function (event) {
+            if (event.target.classList.contains('modal')) {
+                if (event.target.id === 'add-subscription-modal') hideAddSubscriptionModal();
+                if (event.target.id === 'confirm-delete-modal') hideDeleteModal();
+            }
+        });
 
         async function loadSalaryDays() {
             const table = document.getElementById('salary-table');
@@ -1389,12 +2005,13 @@
                     salaryTableState.loaded = true;
 
                     renderSalaryDays(salaryTableState.data);
+                    table.style.display = 'block';
+                    button.textContent = 'Скрыть зарплатные дни';
+                    salaryTableState.visible = true;
                 }
-
                 table.style.display = 'block';
                 button.textContent = 'Скрыть зарплатные дни';
                 salaryTableState.visible = true;
-
             } catch (error) {
                 console.error('Ошибка загрузки зарплатных дней:', error);
                 showAlert(alertBox, `Ошибка: ${error.response?.data?.error || error.message}`, 'error');
@@ -1410,39 +2027,169 @@
         function renderSalaryDays(days) {
             const tbody = document.getElementById('salary-list');
             tbody.innerHTML = '';
-
-            days.forEach(day => {
+            if (!days || days.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3">Нет данных о зарплатных днях</td></tr>';
+                return;
+            }
+            let sortedDays = [...days];
+            if (salaryTableState.sortDirection === 'asc') {
+                sortedDays.sort((a, b) => {
+                    const dayA = parseInt(a.salary_day) || 0;
+                    const dayB = parseInt(b.salary_day) || 0;
+                    return dayA - dayB;
+                });
+            } else if (salaryTableState.sortDirection === 'desc') {
+                sortedDays.sort((a, b) => {
+                    const dayA = parseInt(a.salary_day) || 0;
+                    const dayB = parseInt(b.salary_day) || 0;
+                    return dayB - dayA;
+                });
+            }
+            sortedDays.forEach(day => {
                 const row = document.createElement('tr');
-
+                row.dataset.userId = day.id;
                 row.innerHTML = `
                     <td>${day.id}</td>
-                    <td>${day.salary_day}</td>
+                    <td class="salary-day-cell">${day.salary_day}</td>
                     <td>
-                        <button class="btn btn-info" onclick="updateSalaryDay(${day.id})">
+                        <button class="btn btn-info" onclick="showEditSalaryModal(${day.id}, ${day.salary_day})">
                             Изменить день
                         </button>
                     </td>
                 `;
-
                 tbody.appendChild(row);
             });
+            updateSortButtons();
         }
 
-        async function updateSalaryDay(userId) {
-            const newDay = prompt(`Введите новый зарплатный день (1-31) для пользователя ${userId}:`, '1');
+        function sortSalaryDays(direction) {
+            salaryTableState.sortDirection = direction;
+            renderSalaryDays(salaryTableState.data);
+        }
 
-            if (!newDay || isNaN(newDay) || newDay < 1 || newDay > 31) {
-                showAlert('salary-alert', 'Ошибка: День должен быть числом от 1 до 31', 'error');
-                return;
+        function updateSortButtons(tableType) {
+            if (tableType === 'salary') {
+                const ascBtn = document.getElementById('sort-asc-btn');
+                const descBtn = document.getElementById('sort-desc-btn');
+                const resetBtn = document.getElementById('sort-reset-btn');
+
+                ascBtn.classList.remove('active');
+                descBtn.classList.remove('active');
+                resetBtn.classList.remove('active');
+
+                if (salaryTableState.sortDirection === 'asc') {
+                    ascBtn.classList.add('active');
+                } else if (salaryTableState.sortDirection === 'desc') {
+                    descBtn.classList.add('active');
+                } else {
+                    resetBtn.classList.add('active');
+                }
+            }
+            if (tableType === 'users') {
+                const ascBtn = document.getElementById('sort-asc-btn');
+                const descBtn = document.getElementById('sort-desc-btn');
+                const resetBtn = document.getElementById('sort-reset-btn');
+
+                ascBtn.classList.remove('active');
+                descBtn.classList.remove('active');
+                resetBtn.classList.remove('active');
+
+                if (userTableState.sortDirection === 'asc') {
+                    ascBtn.classList.add('active');
+                } else if (userTableState.sortDirection === 'desc') {
+                    descBtn.classList.add('active');
+                } else {
+                    resetBtn.classList.add('active');
+                }
+            }
+            if (tableType === 'subscriptions') {
+                const ascBtn = document.getElementById('sort-asc-btn');
+                const descBtn = document.getElementById('sort-desc-btn');
+                const resetBtn = document.getElementById('sort-reset-btn');
+
+                ascBtn.classList.remove('active');
+                descBtn.classList.remove('active');
+                resetBtn.classList.remove('active');
+
+                if (subscriptionsTableState.sortDirection === 'asc') {
+                    ascBtn.classList.add('active');
+                } else if (subscriptionsTableState.sortDirection === 'desc') {
+                    descBtn.classList.add('active');
+                } else {
+                    resetBtn.classList.add('active');
+                }
+            }
+            if (tableType === 'merchants') {
+                const ascBtn = document.getElementById('sort-asc-btn');
+                const descBtn = document.getElementById('sort-desc-btn');
+                const resetBtn = document.getElementById('sort-reset-btn');
+
+                ascBtn.classList.remove('active');
+                descBtn.classList.remove('active');
+                resetBtn.classList.remove('active');
+
+                if (merchantTableState.sortDirection === 'asc') {
+                    ascBtn.classList.add('active');
+                } else if (merchantTableState.sortDirection === 'desc') {
+                    descBtn.classList.add('active');
+                } else {
+                    resetBtn.classList.add('active');
+                }
             }
 
+        }
+
+        function showEditSalaryModal(userId, currentDay) {
+            const currentValue = document.querySelector(`#salary-list tr[data-user-id="${userId}"] .salary-day-cell`)?.textContent;
+            document.getElementById('salary-day').value = currentValue || currentDay;
+            document.getElementById('salary-user-id').value = userId;
+            document.getElementById('salary-form-alert').style.display = 'none';
+            document.getElementById('edit-salary-modal').style.display = 'flex';
+        }
+
+        function hideEditSalaryModal() {
+            document.getElementById('edit-salary-modal').style.display = 'none';
+        }
+
+        document.getElementById('edit-salary-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const userId = document.getElementById('salary-user-id').value;
+            const day = document.getElementById('salary-day').value;
+            const alertBox = document.getElementById('salary-form-alert');
+
             try {
-                await axios.post(`/api/salary/${userId}`, { day: parseInt(newDay) });
-                showAlert('salary-alert', `Зарплатный день для пользователя ${userId} успешно обновлен`, 'success');
-                loadSalaryDays();
+                if (!userId || !day) {
+                    throw new Error("Все поля обязательны для заполнения");
+                }
+                const response = await axios.post(`/api/salary/${userId}`, {
+                    day: parseInt(day)
+                });
+                updateSalaryDayInTable(userId, day);
+                const mainAlertBox = document.getElementById('salary-alert');
+                hideEditSalaryModal();
             } catch (error) {
-                console.error('Ошибка обновления зарплатного дня:', error);
-                showAlert('salary-alert', `Ошибка: ${error.response?.data?.error || error.message}`, 'error');
+                console.error('Ошибка обновления:', error);
+                const errorMessage = error.response?.data?.error ||
+                    error.response?.data?.details ||
+                    error.message;
+                showAlert(alertBox, `Ошибка: ${errorMessage}`, 'error');
+            }
+        });
+
+
+        function updateSalaryDayInTable(userId, newDay) {
+            const row = document.querySelector(`#salary-list tr[data-user-id="${userId}"]`);
+            if (row) {
+                const dayCell = row.querySelector('.salary-day-cell');
+                if (dayCell) {
+                    dayCell.textContent = newDay;
+                    const editButton = row.querySelector('.btn-info');
+                    if (editButton) {
+                        editButton.setAttribute('onclick', `showEditSalaryModal(${userId}, ${newDay})`);
+                    }
+                    row.classList.add('updated-row');
+                    setTimeout(() => row.classList.remove('updated-row'), 1500);
+                }
             }
         }
 
@@ -1464,16 +2211,18 @@
             element.style.display = 'none';
         }
 
-        function showAlert(element, message, type = 'success') {
-            if (!element) {
-                console.error('Alert element not found:', message);
+        function showAlert(elementId, message, type = 'success') {
+            const alertBox = document.getElementById(elementId);
+            if (!alertBox) {
+                console.error('Alert element not found:', elementId);
                 return;
             }
-
-            element.textContent = message;
-            element.className = `alert alert-${type}`;
-            element.style.display = 'block';
-            setTimeout(() => element.style.display = 'none', 5000);
+            alertBox.textContent = message;
+            alertBox.className = `alert alert-${type}`;
+            alertBox.style.display = 'block';
+            setTimeout(() => {
+                alertBox.style.display = 'none';
+            }, 3000);
         }
 
         window.addEventListener('click', e => {
@@ -1481,8 +2230,155 @@
                 e.target.style.display = 'none';
             }
         });
-
         document.getElementById('add-merchant-form').addEventListener('submit', handleAddMerchant);
+
+        async function loadBackups() {
+            const table = document.getElementById('backups-table');
+            const button = document.querySelector('#backups .btn-primary');
+            const alertBox = document.getElementById('backups-alert');
+
+            try {
+                if (backupsTableState.visible) {
+                    table.style.display = 'none';
+                    button.textContent = 'Показать бэкапы';
+                    backupsTableState.visible = false;
+                    return;
+                }
+
+                if (!backupsTableState.loaded) {
+                    showLoading('backups-loading');
+                    alertBox.style.display = 'none';
+
+                    const response = await axios.get('/api/backups');
+                    backupsTableState.data = response.data;
+                    backupsTableState.loaded = true;
+                    renderBackups(response.data);
+                }
+                table.style.display = 'block';
+                button.textContent = 'Скрыть бэкапы';
+                backupsTableState.visible = true;
+            } catch (error) {
+                console.error('Ошибка загрузки бэкапов:', error);
+                alertBox.textContent = `Ошибка: ${error.response?.data?.error || error.message}`;
+                alertBox.className = 'alert alert-error';
+                alertBox.style.display = 'block';
+                table.style.display = 'none';
+                button.textContent = 'Показать бэкапы';
+                backupsTableState.visible = false;
+            } finally {
+                hideLoading('backups-loading');
+            }
+        }
+
+        function renderBackups(backups) {
+            const tbody = document.getElementById('backups-list');
+            tbody.innerHTML = '';
+
+            backups.forEach(backup => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${backup.id}</td>
+                    <td>${backup.filename}</td>
+                    <td>${formatDate(backup.created_at)}</td>
+                    <td>${formatFileSize(backup.size)}</td>
+                    <td>${backup.description || 'Без описания'}</td>
+                    <td>
+                        <button class="btn btn-info" onclick="downloadBackup('${backup.filename}')">Скачать</button>
+                        <button class="btn btn-danger" onclick="deleteBackup(${backup.id})">Удалить</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function showCreateBackupModal() {
+            document.getElementById('create-backup-modal').style.display = 'flex';
+            document.getElementById('backup-form-alert').style.display = 'none';
+            document.getElementById('create-backup-form').reset();
+        }
+
+        function hideCreateBackupModal() {
+            document.getElementById('create-backup-modal').style.display = 'none';
+        }
+
+        async function handleCreateBackup(e) {
+            e.preventDefault();
+            const loadingElement = document.getElementById('backup-submit-loading');
+            const alertBox = document.getElementById('backup-form-alert');
+
+            try {
+                showLoading('backup-submit-loading');
+                const description = document.getElementById('backup-description').value.trim();
+
+                const response = await axios.post('/api/backups/create', { description });
+                hideCreateBackupModal();
+
+                showAlert(alertBox, 'Бэкап успешно создан', 'success');
+                backupsTableState.loaded = false;
+                backupsTableState.visible = false;
+
+                setTimeout(() => {
+                    loadBackups();
+                }, 1000);
+
+            } catch (error) {
+                console.error('Ошибка создания бэкапа:', error);
+                alertBox.textContent = `Ошибка: ${error.response?.data?.error || error.message}`;
+                alertBox.className = 'alert alert-error';
+                alertBox.style.display = 'block';
+            } finally {
+                hideLoading('backup-submit-loading');
+            }
+        }
+
+        function downloadBackup(filename) {
+            window.open(`/api/backups/download/${filename}`);
+        }
+
+        async function deleteBackup(backupId) {
+            if (!confirm(`Вы уверены, что хотите удалить бэкап #${backupId}?`)) return;
+
+            try {
+                await axios.delete(`/api/backups/${backupId}`);
+
+                const alertBox = document.getElementById('backups-alert');
+                showAlert(alertBox, `Бэкап #${backupId} успешно удален`, 'success');
+
+                backupsTableState.loaded = false;
+                backupsTableState.data = [];
+                loadBackups();
+            } catch (error) {
+                console.error('Ошибка удаления бэкапа:', error);
+                const alertBox = document.getElementById('backups-alert');
+                showAlert(alertBox, `Ошибка: ${error.response?.data?.error || error.message}`, 'error');
+            }
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('ru-RU', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('create-backup-form');
+            if (form) {
+                form.addEventListener('submit', handleCreateBackup);
+            }
+        });
     </script>
 </body>
 

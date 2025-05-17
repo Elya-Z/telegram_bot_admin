@@ -16,13 +16,8 @@ class MerchantRepository {
 
     async addMerchant({ merchant_name }) {
         const client = await pool.connect();
-        console.log("Подключение к БД получено");
-
         try {
-            console.log("Начало транзакции");
             await client.query('BEGIN');
-
-            console.log("Выполнение INSERT запроса");
             const res = await client.query(
                 `INSERT INTO test.merchant (merchant_name) 
                  VALUES ($1) 
@@ -31,7 +26,6 @@ class MerchantRepository {
             );
 
             await client.query('COMMIT');
-            console.log("Транзакция завершена успешно");
             return res.rows[0];
         } catch (error) {
             await client.query('ROLLBACK');
@@ -43,23 +37,19 @@ class MerchantRepository {
             throw error;
         } finally {
             client.release();
-            console.log("Подключение к БД освобождено");
         }
     }
 
     async updateMerchant(merchantId, merchantName) {
         const client = await pool.connect();
-
         try {
             await client.query('BEGIN');
-
             const result = await client.query(
-                'UPDATE test.merchant SET merchant_name = $1 WHERE id = $2 RETURNING *',
+                'UPDATE test.merchant SET merchant_name = $1 WHERE id = $2 RETURNING id, merchant_name AS name',
                 [merchantName, merchantId]
             );
 
             await client.query('COMMIT');
-
             if (result.rows.length === 0) {
                 throw new Error('Мерчант не найден');
             }
@@ -76,7 +66,6 @@ class MerchantRepository {
 
     async deleteMerchant(merchantId) {
         const client = await pool.connect();
-
         try {
             await client.query('BEGIN');
             await client.query('DELETE FROM test.merchant WHERE id = $1', [merchantId]);

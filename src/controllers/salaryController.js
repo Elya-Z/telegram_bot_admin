@@ -6,7 +6,11 @@ class SalaryController {
             const days = await salaryRepository.getAllSalaryDays();
             res.json(days);
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            console.error('Error getting salary days:', error);
+            res.status(500).json({
+                error: 'Ошибка при получении зарплатных дней',
+                details: error.message
+            });
         }
     }
 
@@ -25,17 +29,19 @@ class SalaryController {
 
             const updated = await salaryRepository.updateSalaryDay(userId, day);
 
-            if (!updated) {
-                return res.status(404).json({ error: "Пользователь не найден" });
-            }
-
             res.json({
                 success: true,
-                data: updated
+                data: {
+                    id: updated.id,
+                    salary_day: updated.salary_day
+                }
             });
         } catch (error) {
-            console.error('Ошибка обновления:', error);
-            res.status(500).json({ error: error.message });
+            console.error('Error updating salary day:', error);
+            res.status(500).json({
+                error: "Ошибка при обновлении зарплатного дня",
+                details: error.message
+            });
         }
     }
 }
