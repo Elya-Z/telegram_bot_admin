@@ -2404,11 +2404,8 @@
                 await axios.delete(`/api/backups/${backupId}`);
 
                 const alertBox = document.getElementById('backups-alert');
-                showAlert(alertBox, `Бэкап #${backupId} успешно удален`, 'success');
-
-                backupsTableState.loaded = false;
-                backupsTableState.data = [];
-                loadBackups();
+                backupsTableState.data = backupsTableState.data.filter(backup => backup.id !== backupId);
+                renderBackups(backupsTableState.data);
             } catch (error) {
                 console.error('Ошибка удаления бэкапа:', error);
                 const alertBox = document.getElementById('backups-alert');
