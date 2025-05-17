@@ -1612,14 +1612,34 @@
             }
 
             try {
+
+                const wasTableVisible = merchantTableState.visible;
+
+                const response = await axios.put(`/api/merchants/${id}`, { merchant_name: name });
+
+                // Обновляем данные в состоянии
                 const merchantIndex = merchantTableState.data.findIndex(m => m.id == id);
                 if (merchantIndex !== -1) {
                     merchantTableState.data[merchantIndex].name = name;
-                    renderMerchants(merchantTableState.data);
+                    merchantTableState.filteredData = [...merchantTableState.data];
+
+                    if (merchantTableState.searchQuery) {
+                        filterMerchants();
+                    } else {
+                        sortMerchants();
+                    }
+
+                    renderMerchants(merchantTableState.filteredData);
                 }
+
                 hideEditMerchantModal();
-                const response = await axios.put(`/api/merchants/${id}`, { merchant_name: name });
-                await loadMerchants();
+
+                // Восстанавливаем видимость таблицы, если она была открыта
+                if (wasTableVisible) {
+                    document.getElementById('merchants-table').style.display = 'block';
+                    document.querySelector('#merchants .btn-primary').textContent = 'Скрыть мерчантов';
+                    merchantTableState.visible = true;
+                }
 
             } catch (error) {
                 console.error('Ошибка обновления мерчанта:', error);
@@ -1662,11 +1682,20 @@
                     merchant_name: merchantName
                 });
 
-                alertBox.className = 'alert alert-success';
-                alertBox.style.display = 'block';
+                const updatedResponse = await axios.get('/api/merchants');
+                merchantTableState.data = updatedResponse.data;
+                merchantTableState.filteredData = [...merchantTableState.data];
+                merchantTableState.loaded = true;
+                if (merchantTableState.searchQuery) {
+                    filterMerchants();
+                } else {
+                    sortMerchants();
+                }
+
+                // Обновляем таблицу
+                renderMerchants(merchantTableState.filteredData);
 
                 hideAddMerchantModal();
-                loadMerchants();
 
             } catch (error) {
                 console.error('Ошибка добавления мерчанта:', error);
@@ -1682,7 +1711,16 @@
             if (confirm(`Вы уверены, что хотите удалить мерчанта ${merchantId}?`)) {
                 try {
                     await axios.delete(`/api/merchants/${merchantId}`);
-                    loadMerchants();
+                    merchantTableState.data = merchantTableState.data.filter(m => m.id != merchantId);
+                    merchantTableState.filteredData = [...merchantTableState.data];
+
+                    if (merchantTableState.searchQuery) {
+                        filterMerchants();
+                    } else {
+                        sortMerchants();
+                    }
+
+                    renderMerchants(merchantTableState.filteredData);
                 } catch (error) {
                     console.error('Ошибка удаления:', error);
                     showAlert('merchants-alert', `Ошибка: ${error.response?.data?.error || error.message}`, 'error');
