@@ -19,8 +19,9 @@ app.use(express.static(path.join(__dirname, 'views')));
 
 const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const otherRoutes = require('./routes');
-
+const paymentRoutes = require('./routes/paymentRoutes');
 app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/payments', paymentRoutes);
 app.use('/api', otherRoutes);
 
 app.get('/', (req, res) => {
