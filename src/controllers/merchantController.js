@@ -1,5 +1,6 @@
 const merchantRepository = require('../repositories/merchantRepository');
 const pool = require('../config/db');
+
 class MerchantController {
     async getMerchants(req, res) {
         try {

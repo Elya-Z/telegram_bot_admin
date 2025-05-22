@@ -757,7 +757,6 @@
             Экспортировать
             всё</button>
         <h1>Административная панель Telegram бота</h1>
-
         <div class="tabs">
             <button class="tab-btn active" data-tab="users">Пользователи</button>
             <button class="tab-btn" data-tab="merchants">Мерчанты</button>
@@ -765,7 +764,6 @@
             <button class="tab-btn" data-tab="salary">Зарплатные дни</button>
             <button class="tab-btn" data-tab="backups">Бэкапы</button>
             <button class="tab-btn" data-tab="payments">Платежи</button>
-
         </div>
 
         <div id="users" class="tab-content active">
@@ -850,9 +848,7 @@
                     Экспортировать
                     в Excel</button>
             </div>
-
             <div id="subscriptions-alert" class="alert"></div>
-
             <div id="subscriptions-table" style="display: none;">
                 <table>
                     <thead>
@@ -878,9 +874,7 @@
                     Экспортировать
                     в Excel</button>
             </div>
-
             <div id="salary-alert" class="alert"></div>
-
             <div id="salary-table" style="display: none;">
                 <div class="sort-controls">
                     <button id="sort-asc-btn" class="sort-btn" onclick="sortSalaryDays('asc')">По возрастанию</button>
@@ -912,9 +906,7 @@
                         class="fas fa-plus-circle"></i>Создать
                     бэкап</button>
             </div>
-
             <div id="backups-alert" class="alert"></div>
-
             <div id="backups-table" style="display: none;">
                 <table>
                     <thead>
@@ -938,6 +930,21 @@
                     <span id="payments-loading" class="loading" style="display: none;"></span>
                     Показать платежи
                 </button>
+                <div class="filter-container">
+                    <select id="payment-status-filter" class="form-control" onchange="filterPaymentsByStatus()">
+                        <option value="">Все статусы</option>
+                        <option value="NEW">Новый</option>
+                        <option value="CONFIRMED">Подтверждён</option>
+                        <option value="COMPLETED">Завершён</option>
+                        <option value="REJECTED">Отклонён</option>
+                        <option value="REVERSED">Отменён</option>
+                        <option value="REFUNDING">Возврат</option>
+                        <option value="REFUNDED">Возвращён</option>
+                        <option value="PARTIAL_REFUNDED">Частичный возврат</option>
+                        <option value="CHECKING">Проверка</option>
+                        <option value="CANCELLED">Отменено вручную</option>
+                    </select>
+                </div>
                 <button class="btn btn-success" onclick="showCreatePaymentModal()"><i
                         class="fas fa-plus-circle"></i>Создать
                     платеж</button>
@@ -945,9 +952,7 @@
                     Экспортировать в
                     Excel</button>
             </div>
-
             <div id="payments-alert" class="alert"></div>
-
             <div id="payments-table" style="display: none;">
                 <table>
                     <thead>
@@ -1127,7 +1132,6 @@
         </div>
     </div>
 
-    <!-- Payment Details Modal -->
     <div id="payment-details-modal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="hidePaymentDetailsModal()">&times;</span>
@@ -1182,6 +1186,14 @@
             window.open('/api/reports/users/excel');
         }
 
+        function exportUsers() {
+            window.open('/api/export/users');
+        }
+
+        function exportMerchants() {
+            window.open('/api/export/merchants');
+        }
+
         function exportSubscriptions() {
             window.open('/api/export/subscriptions');
         }
@@ -1193,6 +1205,36 @@
         function exportPayments() {
             window.open('/api/export/payments');
         }
+
+        function exportAllWithSelection() {
+            document.getElementById('export-select-modal').style.display = 'flex';
+        }
+
+        function hideExportSelectModal() {
+            document.getElementById('export-select-modal').style.display = 'none';
+        }
+
+        document.getElementById('export-tables-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const selectedTables = Array.from(document.querySelectorAll('input[name="tables"]:checked'))
+                .map(cb => cb.value);
+            if (selectedTables.length === 0) {
+                alert('Выберите хотя бы одну таблицу');
+                return;
+            }
+            const url = `/api/export/all?tables=${encodeURIComponent(selectedTables.join(','))}`;
+            window.open(url);
+            hideExportSelectModal();
+        });
+
+        const appState = {
+            users: { loaded: false, data: [] },
+            merchants: { loaded: false, data: [] },
+            subscriptions: { loaded: false, data: [] },
+            salary: { loaded: false, data: [] },
+            backups: { loaded: false, data: [] },
+            payments: { loaded: false, data: [] }
+        };
 
         const userTableState = {
             visible: false,
@@ -1238,34 +1280,12 @@
             data: []
         };
 
-        // Current payment details for modals
+        const API_BASE_URL = window.location.origin;
+        let currentTab = 'users';
         let currentPaymentId = null;
         let currentPaymentData = null;
-
-        function exportUsers() {
-            window.open('/api/export/users');
-        }
-
-        function escapeJson(data) {
-            try {
-                return JSON.stringify(data || {}).replace(/"/g, '&quot;');
-            } catch (e) {
-                console.error('Error escaping JSON:', e);
-                return '{}';
-            }
-        }
-        const API_BASE_URL = window.location.origin;
-
-        const appState = {
-            users: { loaded: false, data: [] },
-            merchants: { loaded: false, data: [] },
-            subscriptions: { loaded: false, data: [] },
-            salary: { loaded: false, data: [] },
-            backups: { loaded: false, data: [] },
-            payments: { loaded: false, data: [] }
-        };
-
-        let currentTab = 'users';
+        let subscriptionToDelete = null;
+        let allPayments = [];
 
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -1276,14 +1296,10 @@
             });
             switchTab('users');
 
-
             document.getElementById('create-payment-form').addEventListener('submit', handleCreatePayment);
-
-            // Check URL for payment success/error parameters
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('payment_success') || urlParams.has('payment_error')) {
                 switchTab('payments');
-
                 setTimeout(() => {
                     const alertBox = document.getElementById('payments-alert');
                     if (urlParams.has('payment_success') && urlParams.get('payment_success') === 'true') {
@@ -1299,17 +1315,13 @@
 
         async function switchTab(tabId) {
             currentTab = tabId;
-
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
-
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
-
             if (!appState[tabId].loaded) {
                 await loadTabData(tabId);
             }
-
             renderTabData(tabId);
         }
 
@@ -1327,14 +1339,14 @@
                 case 'salary':
                     renderSalaryDays(appState.salary.data);
                     break;
+                case 'backups':
+                    renderBackups(appState.backups.data);
+                    break;
+                case 'payments':
+                    renderPayments(appState.payments.data);
+                    break;
             }
         }
-
-        function checkSubscriptionId() {
-            const id = document.getElementById('subscription-id').value;
-            alert(`Текущий ID подписки: ${id || 'не установлен'}`);
-        }
-
 
         async function loadTabData(tabId) {
             try {
@@ -1379,7 +1391,6 @@
         async function toggleUsersTable() {
             const table = document.getElementById('users-table');
             const button = document.querySelector('#users .btn-primary');
-
             if (!table || !button) {
                 console.error("Не найдены элементы таблицы или кнопки");
                 return;
@@ -1402,12 +1413,10 @@
                     userTableState.data = response.data;
                     userTableState.loaded = true;
                 }
-
                 applyUserFilter();
                 table.style.display = 'block';
                 button.textContent = 'Скрыть пользователей';
                 userTableState.visible = true;
-
             } catch (error) {
                 console.error('Ошибка загрузки пользователей:', error);
                 showAlert(`Ошибка: ${error.response?.data?.error || error.message}`, 'error');
@@ -1427,7 +1436,6 @@
                     user.status.toString() === selectedFilter
                 );
             }
-
             renderUsers(filteredUsers);
         }
 
@@ -1445,14 +1453,12 @@
                 tbody.innerHTML = '<tr><td colspan="5">Нет пользователей по заданным критериям</td></tr>';
                 return;
             }
-
             let sortedUsers = [...users];
             if (userTableState.sortDirection === 'asc') {
                 sortedUsers.sort((a, b) => a.id - b.id);
             } else if (userTableState.sortDirection === 'desc') {
                 sortedUsers.sort((a, b) => b.id - a.id);
             }
-
             sortedUsers.forEach(user => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -1474,7 +1480,6 @@
         `;
                 tbody.appendChild(row);
             });
-
             updateSortButtons('users');
         }
 
@@ -1514,31 +1519,9 @@
             }
         }
 
-        function updateTableRowStatus(userId, newStatus) {
-            const row = document.querySelector(`#users-list tr td[data-id='${userId}']`)?.parentElement;
-            if (!row) {
-                console.warn('Строка пользователя не найдена');
-                return;
-            }
-            const statusCell = row.querySelectorAll('td')[3];
-            const actionCell = row.querySelectorAll('td')[4];
-            statusCell.innerHTML = `
-        <span class="badge ${newStatus === 1 ? 'badge-success' : 'badge-danger'}">
-            ${newStatus === 1 ? 'Активен' : 'Заблокирован'}
-        </span>
-        `;
-            actionCell.innerHTML = `
-        ${newStatus === 1
-                    ? `<button class="btn btn-danger" onclick="blockUser(${userId})">Заблокировать</button>`
-                    : `<button class="btn btn-secondary" onclick="unblockUser(${userId})">Разблокировать</button>`}
-        <button onclick="promptUpdateBalance(${userId})">Изменить баланс</button>
-        `;
-        }
-
         async function promptUpdateBalance(userId) {
             const amount = prompt("Введите сумму для изменения баланса (положительное или отрицательное число):");
             if (amount === null) return;
-
             updateBalance(userId, parseFloat(amount));
         }
 
@@ -1552,47 +1535,6 @@
                 );
             }
             renderUsers(filteredUsers);
-        }
-
-        async function showUsers() {
-            const table = document.getElementById('users-table');
-            const button = document.querySelector('#users .btn-primary');
-            const alertBox = document.getElementById('users-alert');
-            try {
-                if (userTableState.visible) {
-                    table.style.display = 'none';
-                    button.textContent = 'Показать пользователей';
-                    userTableState.visible = false;
-                    return;
-                }
-                if (!userTableState.loaded) {
-                    showLoading('users-loading');
-                    alertBox.style.display = 'none';
-
-                    const response = await axios.get('/api/users');
-                    if (!Array.isArray(response.data)) {
-                        throw new Error('Неверный формат данных');
-                    }
-                    userTableState.data = response.data;
-                    userTableState.loaded = true;
-                    renderUsers(userTableState.data);
-                }
-
-                table.style.display = 'block';
-                button.textContent = 'Скрыть пользователей';
-                userTableState.visible = true;
-
-            } catch (error) {
-                console.error('Ошибка загрузки пользователей:', error);
-                alertBox.textContent = `Ошибка: ${error.response?.data?.error || error.message}`;
-                alertBox.className = 'alert alert-error';
-                alertBox.style.display = 'block';
-                table.style.display = 'none';
-                button.textContent = 'Показать пользователей';
-                userTableState.visible = false;
-            } finally {
-                hideLoading('users-loading');
-            }
         }
 
         async function updateBalance(userId, amount) {
@@ -1616,17 +1558,6 @@
                 console.error('Ошибка при обновлении баланса:', error);
                 alert('Ошибка при обновлении баланса: ' + (error.response?.data?.error || error.message));
             }
-        }
-
-        function showAlert(elementId, message, type = 'success') {
-            const alertBox = document.getElementById(elementId);
-            if (!alertBox) return;
-            alertBox.textContent = message;
-            alertBox.className = `alert alert-${type}`;
-            alertBox.style.display = 'block';
-            setTimeout(() => {
-                alertBox.style.display = 'none';
-            }, 3000);
         }
 
         async function loadMerchants() {
@@ -1710,13 +1641,11 @@
                 `;
                 tbody.appendChild(row);
             });
-
             updateSortButtons('merchants');
         }
 
         function toggleMerchantSort() {
             const sortBtn = document.getElementById('sort-merchants-btn');
-
             if (merchantTableState.sortDirection === 'asc') {
                 merchantTableState.sortDirection = 'desc';
                 sortBtn.textContent = 'Сортировка: Я-А';
@@ -1766,20 +1695,6 @@
             renderMerchants(merchantTableState.filteredData);
         }
 
-        function exportMerchants() {
-            window.open('/api/export/merchants');
-        }
-
-        function initializeEditButtons() {
-            document.querySelectorAll('.edit-merchant-btn').forEach(btn => {
-                btn.addEventListener('click', function () {
-                    const merchantId = this.getAttribute('data-merchant-id');
-                    const merchantName = this.getAttribute('data-merchant-name');
-                    showEditMerchantModal(merchantId, merchantName);
-                });
-            });
-        }
-
         function showEditMerchantModal(id, name) {
             const modal = document.getElementById('edit-merchant-modal');
             const idInput = document.getElementById('edit-merchant-id');
@@ -1802,13 +1717,13 @@
             }
             document.getElementById('edit-merchant-form').reset();
         }
+
         document.getElementById('edit-merchant-form').addEventListener('submit', async function (e) {
             e.preventDefault();
 
             const id = document.getElementById('edit-merchant-id').value;
             const name = document.getElementById('edit-merchant-name').value.trim();
             const alertBox = document.getElementById('edit-merchant-form-alert');
-
             if (!name) {
                 alertBox.textContent = 'Имя мерчанта обязательно';
                 alertBox.className = 'alert alert-error';
@@ -1817,35 +1732,25 @@
             }
 
             try {
-
                 const wasTableVisible = merchantTableState.visible;
-
                 const response = await axios.put(`/api/merchants/${id}`, { merchant_name: name });
-
-                // Обновляем данные в состоянии
                 const merchantIndex = merchantTableState.data.findIndex(m => m.id == id);
                 if (merchantIndex !== -1) {
                     merchantTableState.data[merchantIndex].name = name;
                     merchantTableState.filteredData = [...merchantTableState.data];
-
                     if (merchantTableState.searchQuery) {
                         filterMerchants();
                     } else {
                         sortMerchants();
                     }
-
                     renderMerchants(merchantTableState.filteredData);
                 }
-
                 hideEditMerchantModal();
-
-                // Восстанавливаем видимость таблицы, если она была открыта
                 if (wasTableVisible) {
                     document.getElementById('merchants-table').style.display = 'block';
                     document.querySelector('#merchants .btn-primary').textContent = 'Скрыть мерчантов';
                     merchantTableState.visible = true;
                 }
-
             } catch (error) {
                 console.error('Ошибка обновления мерчанта:', error);
                 showAlert('merchants-alert', `Ошибка: ${error.response?.data?.error || error.message}`, 'error');
@@ -1853,12 +1758,7 @@
             }
         });
 
-        window.addEventListener('click', function (event) {
-            const modal = document.getElementById('edit-merchant-modal');
-            if (event.target === modal) {
-                hideEditMerchantModal();
-            }
-        });
+        document.getElementById('add-merchant-form').addEventListener('submit', handleAddMerchant);
 
         function showAddMerchantModal() {
             document.getElementById('add-merchant-modal').style.display = 'flex';
@@ -1877,16 +1777,13 @@
 
             try {
                 showLoading('merchant-submit-loading');
-
                 const merchantName = document.getElementById('merchant-name').value.trim();
                 if (!merchantName) {
                     throw new Error("Имя мерчанта обязательно");
                 }
-
                 const response = await axios.post('/api/merchants', {
                     merchant_name: merchantName
                 });
-
                 const updatedResponse = await axios.get('/api/merchants');
                 merchantTableState.data = updatedResponse.data;
                 merchantTableState.filteredData = [...merchantTableState.data];
@@ -1897,9 +1794,7 @@
                     sortMerchants();
                 }
                 renderMerchants(merchantTableState.filteredData);
-
                 hideAddMerchantModal();
-
             } catch (error) {
                 console.error('Ошибка добавления мерчанта:', error);
                 alertBox.textContent = `Ошибка: ${error.response?.data?.error || error.message}`;
@@ -1916,13 +1811,11 @@
                     await axios.delete(`/api/merchants/${merchantId}`);
                     merchantTableState.data = merchantTableState.data.filter(m => m.id != merchantId);
                     merchantTableState.filteredData = [...merchantTableState.data];
-
                     if (merchantTableState.searchQuery) {
                         filterMerchants();
                     } else {
                         sortMerchants();
                     }
-
                     renderMerchants(merchantTableState.filteredData);
                 } catch (error) {
                     console.error('Ошибка удаления:', error);
@@ -1935,7 +1828,6 @@
             const table = document.getElementById('subscriptions-table');
             const button = document.querySelector('#subscriptions .btn-primary');
             const alertBox = document.getElementById('subscriptions-alert');
-
             try {
                 if (!forceReload && subscriptionsTableState.visible) {
                     table.style.display = 'none';
@@ -1954,12 +1846,10 @@
                     subscriptionsTableState.data = response.data;
                     subscriptionsTableState.loaded = true;
                 }
-
                 renderSubscriptions(subscriptionsTableState.data);
                 table.style.display = 'block';
                 button.textContent = 'Скрыть подписки';
                 subscriptionsTableState.visible = true;
-
             } catch (error) {
                 console.error('Ошибка загрузки подписок:', error);
                 alertBox.textContent = `Ошибка: ${error.message}`;
@@ -1986,14 +1876,12 @@
                 tbody.innerHTML = '<tr><td colspan="4">Нет доступных подписок</td></tr>';
                 return;
             }
-
             let sortedSubs = [...subscriptions];
             if (subscriptionsTableState.sortDirection === 'asc') {
                 sortedSubs.sort((a, b) => (a.id || a.sub_id) - (b.id || b.sub_id));
             } else if (subscriptionsTableState.sortDirection === 'desc') {
                 sortedSubs.sort((a, b) => (b.id || b.sub_id) - (a.id || a.sub_id));
             }
-
             sortedSubs.forEach(sub => {
                 const subId = sub.id || sub.sub_id;
                 let priceData = sub.price;
@@ -2006,7 +1894,6 @@
                         priceData = { month: 0, year: 0 };
                     }
                 }
-
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${subId}</td>
@@ -2026,7 +1913,6 @@
                 `;
                 tbody.appendChild(row);
             });
-
             updateSortButtons('subscriptions');
         }
 
@@ -2064,7 +1950,6 @@
             const monthlyPrice = parseFloat(document.getElementById('monthly-price').value);
             const yearlyPrice = parseFloat(document.getElementById('yearly-price').value);
             const alertBox = document.getElementById('subscription-form-alert');
-
             try {
                 if (!subId) throw new Error("ID подписки не найден");
                 if (isNaN(monthlyPrice) || isNaN(yearlyPrice)) {
@@ -2073,7 +1958,6 @@
                 if (monthlyPrice <= 0 || yearlyPrice <= 0) {
                     throw new Error("Цены должны быть положительными");
                 }
-
                 const response = await axios.post(`/api/subscriptions/${subId}/price`, {
                     price: {
                         month: monthlyPrice,
@@ -2087,7 +1971,6 @@
                 showAlert(alertBox, `Ошибка: ${error.response?.data?.error || error.message}`, 'error');
             }
         }
-
 
         function updateSubscriptionInTable(subId, monthlyPrice, yearlyPrice) {
             const subIndex = subscriptionsTableState.data.findIndex(sub => sub.id == subId || sub.sub_id == subId);
@@ -2119,8 +2002,6 @@
             document.getElementById('subscription-form-alert').style.display = 'none';
         }
 
-        let subscriptionToDelete = null;
-
         function showAddSubscriptionModal() {
             document.getElementById('add-subscription-modal').style.display = 'flex';
             document.getElementById('add-subscription-alert').style.display = 'none';
@@ -2150,7 +2031,6 @@
             const monthlyPrice = parseFloat(document.getElementById('add-monthly-price').value);
             const yearlyPrice = parseFloat(document.getElementById('add-yearly-price').value);
             const alertBox = document.getElementById('add-subscription-alert');
-
             if (!name || isNaN(monthlyPrice) || isNaN(yearlyPrice)) {
                 alertBox.textContent = 'Пожалуйста, заполните все поля корректно';
                 alertBox.className = 'alert alert-error';
@@ -2166,11 +2046,9 @@
                         year: yearlyPrice
                     }
                 });
-
                 subscriptionsTableState.data.unshift(response.data.data);
                 renderSubscriptions(subscriptionsTableState.data);
                 hideAddSubscriptionModal();
-
             } catch (error) {
                 console.error('Ошибка:', error);
                 alertBox.textContent = `Ошибка: ${error.response?.data?.error || error.message}`;
@@ -2184,7 +2062,6 @@
                 console.error('No subscription selected for deletion');
                 return;
             }
-
             try {
                 const loadingElement = document.getElementById('subscriptions-loading');
                 if (loadingElement) loadingElement.style.display = 'inline-block';
@@ -2216,18 +2093,12 @@
             }
         }
 
-        window.addEventListener('click', function (event) {
-            if (event.target.classList.contains('modal')) {
-                if (event.target.id === 'add-subscription-modal') hideAddSubscriptionModal();
-                if (event.target.id === 'confirm-delete-modal') hideDeleteModal();
-            }
-        });
+
 
         async function loadSalaryDays() {
             const table = document.getElementById('salary-table');
             const button = document.querySelector('#salary .btn-primary');
             const alertBox = document.getElementById('salary-alert');
-
             try {
                 if (salaryTableState.visible) {
                     table.style.display = 'none';
@@ -2235,16 +2106,13 @@
                     salaryTableState.visible = false;
                     return;
                 }
-
                 if (!salaryTableState.loaded) {
                     showLoading('salary-loading');
                     button.disabled = true;
                     alertBox.style.display = 'none';
-
                     const response = await axios.get('/api/salary');
                     salaryTableState.data = response.data;
                     salaryTableState.loaded = true;
-
                     renderSalaryDays(salaryTableState.data);
                     table.style.display = 'block';
                     button.textContent = 'Скрыть зарплатные дни';
@@ -2327,6 +2195,7 @@
                     resetBtn.classList.add('active');
                 }
             }
+
             if (tableType === 'users') {
                 const ascBtn = document.getElementById('sort-asc-btn');
                 const descBtn = document.getElementById('sort-desc-btn');
@@ -2344,6 +2213,7 @@
                     resetBtn.classList.add('active');
                 }
             }
+
             if (tableType === 'subscriptions') {
                 const ascBtn = document.getElementById('sort-asc-btn');
                 const descBtn = document.getElementById('sort-desc-btn');
@@ -2361,6 +2231,7 @@
                     resetBtn.classList.add('active');
                 }
             }
+
             if (tableType === 'merchants') {
                 const ascBtn = document.getElementById('sort-asc-btn');
                 const descBtn = document.getElementById('sort-desc-btn');
@@ -2378,6 +2249,7 @@
                     resetBtn.classList.add('active');
                 }
             }
+
             if (tableType === 'backups') {
                 const ascBtn = document.getElementById('sort-asc-btn');
                 const descBtn = document.getElementById('sort-desc-btn');
@@ -2435,7 +2307,6 @@
             }
         });
 
-
         function updateSalaryDayInTable(userId, newDay) {
             const row = document.querySelector(`#salary-list tr[data-user-id="${userId}"]`);
             if (row) {
@@ -2449,347 +2320,6 @@
                     row.classList.add('updated-row');
                     setTimeout(() => row.classList.remove('updated-row'), 1500);
                 }
-            }
-        }
-
-        // Payments section functions
-
-        async function loadPayments() {
-            const table = document.getElementById('payments-table');
-            const button = document.querySelector('#payments .btn-primary');
-            const alertBox = document.getElementById('payments-alert');
-
-            try {
-                if (paymentsTableState.visible) {
-                    table.style.display = 'none';
-                    button.textContent = 'Показать платежи';
-                    paymentsTableState.visible = false;
-                    return;
-                }
-
-                showLoading('payments-loading');
-                button.disabled = true;
-                alertBox.style.display = 'none';
-
-                const response = await axios.get('/api/payments');
-                appState.payments.data = response.data;
-                appState.payments.loaded = true;
-                paymentsTableState.loaded = true;
-
-                renderPayments(response.data);
-
-                table.style.display = 'block';
-                button.textContent = 'Скрыть платежи';
-                paymentsTableState.visible = true;
-
-            } catch (error) {
-                console.error('Ошибка загрузки платежей:', error);
-                showAlert(alertBox, `Ошибка: ${error.response?.data?.error || error.message}`, 'error');
-                table.style.display = 'none';
-                button.textContent = 'Показать платежи';
-                paymentsTableState.visible = false;
-            } finally {
-                hideLoading('payments-loading');
-                button.disabled = false;
-            }
-        }
-
-        function renderPayments(payments) {
-            const tbody = document.getElementById('payments-list');
-            tbody.innerHTML = '';
-
-            if (!payments || !Array.isArray(payments) || payments.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Платежи не найдены</td></tr>';
-                return;
-            }
-
-            payments.forEach(payment => {
-                const row = document.createElement('tr');
-                const createdDate = new Date(payment.created_at);
-                const formattedDate = createdDate.toLocaleString('ru-RU');
-
-                row.innerHTML = `
-                    <td>${payment.id}</td>
-                    <td>${payment.admin_id}</td>
-                    <td>${parseFloat(payment.amount).toFixed(2)} ₽</td>
-                    <td>
-                        <span class="badge status-${payment.status}">${getStatusText(payment.status)}</span>
-                    </td>
-                    <td>${formattedDate}</td>
-                    <td>
-                        <button class="btn btn-info" onclick="showPaymentDetails(${payment.id})">
-                            Детали
-                        </button>
-                    </td>
-                `;
-
-                tbody.appendChild(row);
-            });
-        }
-
-        function getStatusText(status) {
-            const statusMap = {
-                'NEW': 'Новый',
-                'FORMSHOWED': 'Форма показана',
-                'AUTHORIZING': 'Авторизация',
-                'AUTHORIZED': 'Авторизовано',
-                'CONFIRMED': 'Подтверждено',
-                'COMPLETED': 'Завершено',
-                'REJECTED': 'Отклонено',
-                'REVERSED': 'Отменено',
-                'REFUNDING': 'Возврат',
-                'REFUNDED': 'Возвращено',
-                'PARTIAL_REFUNDED': 'Частичный возврат',
-                'CHECKING': 'Проверка',
-                'CANCELLED': 'Отменено вручную'
-            };
-
-            return statusMap[status] || status;
-        }
-
-        function showCreatePaymentModal() {
-            document.getElementById('create-payment-modal').style.display = 'flex';
-            document.getElementById('payment-form-alert').style.display = 'none';
-            document.getElementById('create-payment-form').reset();
-        }
-
-        function hideCreatePaymentModal() {
-            document.getElementById('create-payment-modal').style.display = 'none';
-        }
-
-        async function handleCreatePayment(e) {
-            e.preventDefault();
-            const loadingElement = document.getElementById('payment-submit-loading');
-            const alertBox = document.getElementById('payment-form-alert');
-
-            try {
-                showLoading('payment-submit-loading');
-
-                const adminId = document.getElementById('admin-id').value.trim();
-                const amount = document.getElementById('payment-amount').value.trim();
-
-                if (!adminId || !amount) {
-                    throw new Error("Все поля обязательны для заполнения");
-                }
-
-                const amountValue = parseFloat(amount);
-                if (isNaN(amountValue) || amountValue < 10 || amountValue > 100000) {
-                    throw new Error("Сумма должна быть от 10 до 100 000 рублей");
-                }
-
-                const response = await axios.post('/api/payments', {
-                    adminId: adminId,
-                    amount: amountValue
-                });
-
-                if (response.data.success) {
-                    alertBox.textContent = 'Платеж успешно создан';
-                    alertBox.className = 'alert alert-success';
-                    alertBox.style.display = 'block';
-
-                    // Open the payment URL in a new tab
-                    if (response.data.paymentUrl) {
-                        window.open(response.data.paymentUrl, '_blank');
-                    }
-
-                    setTimeout(() => {
-                        hideCreatePaymentModal();
-                        loadPayments();
-                    }, 1500);
-                } else {
-                    throw new Error(response.data.error || "Ошибка при создании платежа");
-                }
-
-            } catch (error) {
-                console.error('Ошибка создания платежа:', error);
-                alertBox.textContent = `Ошибка: ${error.response?.data?.error || error.message}`;
-                alertBox.className = 'alert alert-error';
-                alertBox.style.display = 'block';
-            } finally {
-                hideLoading('payment-submit-loading');
-            }
-        }
-
-        async function showPaymentDetails(paymentId) {
-            try {
-                // Find payment in state first
-                let paymentData = appState.payments.data.find(p => p.id === paymentId);
-
-                if (!paymentData) {
-                    // If not found in state, fetch from server
-                    const response = await axios.get(`/api/payments/${paymentId}/status`);
-                    paymentData = response.data;
-                }
-
-                currentPaymentId = paymentId;
-                currentPaymentData = paymentData;
-
-                // Fill modal content
-                const contentDiv = document.getElementById('payment-details-content');
-
-                let statusHtml = '';
-                if (paymentData.tinkoffStatus) {
-                    statusHtml = `<p><strong>Статус в Tinkoff:</strong> <span class="badge status-${paymentData.tinkoffStatus}">${getStatusText(paymentData.tinkoffStatus)}</span></p>`;
-                }
-
-                contentDiv.innerHTML = `
-                    <div class="payment-details">
-                        <p><strong>ID платежа:</strong> ${paymentData.id}</p>
-                        <p><strong>ID администратора:</strong> ${paymentData.admin_id}</p>
-                        <p><strong>Сумма:</strong> ${parseFloat(paymentData.amount).toFixed(2)} ₽</p>
-                        <p><strong>Статус:</strong> <span class="badge status-${paymentData.status}">${getStatusText(paymentData.status)}</span></p>
-                        ${statusHtml}
-                        <p><strong>Дата создания:</strong> ${new Date(paymentData.created_at).toLocaleString('ru-RU')}</p>
-                        ${paymentData.updated_at ? `<p><strong>Дата обновления:</strong> ${new Date(paymentData.updated_at).toLocaleString('ru-RU')}</p>` : ''}
-                        ${paymentData.tinkoff_payment_id ? `<p><strong>ID платежа в Tinkoff:</strong> ${paymentData.tinkoff_payment_id}</p>` : ''}
-                        ${paymentData.payment_url ? `<p><strong>Ссылка на оплату:</strong> <a href="${paymentData.payment_url}" target="_blank">${paymentData.payment_url}</a></p>` : ''}
-                    </div>
-                `;
-
-                // Show/hide buttons based on payment status
-                const confirmBtn = document.getElementById('confirm-payment-btn');
-                const cancelBtn = document.getElementById('cancel-payment-btn');
-
-                // Show confirm button only for NEW, FORMSHOWED, AUTHORIZING, AUTHORIZED statuses
-                const canConfirm = ['NEW', 'FORMSHOWED', 'AUTHORIZING', 'AUTHORIZED'].includes(paymentData.status);
-                confirmBtn.style.display = canConfirm ? 'inline-block' : 'none';
-
-                // Show cancel button only if not already cancelled/completed
-                const canCancel = !['CANCELLED', 'REJECTED', 'REVERSED', 'REFUNDED', 'COMPLETED'].includes(paymentData.status);
-                cancelBtn.style.display = canCancel ? 'inline-block' : 'none';
-
-                // Show the modal
-                document.getElementById('payment-details-modal').style.display = 'flex';
-
-            } catch (error) {
-                console.error('Ошибка получения данных платежа:', error);
-                alert(`Ошибка при получении данных платежа: ${error.response?.data?.error || error.message}`);
-            }
-        }
-
-        function hidePaymentDetailsModal() {
-            document.getElementById('payment-details-modal').style.display = 'none';
-            currentPaymentId = null;
-            currentPaymentData = null;
-        }
-
-        async function checkPaymentStatus() {
-            if (!currentPaymentId) return;
-
-            const loadingElement = document.getElementById('check-status-loading');
-
-            try {
-                showLoading('check-status-loading');
-
-                const response = await axios.get(`/api/payments/${currentPaymentId}/status`);
-
-                if (response.data.success) {
-                    // Update current data and UI
-                    currentPaymentData = response.data;
-
-                    // Refresh the payment details
-                    showPaymentDetails(currentPaymentId);
-
-                    // Also refresh payments list if visible
-                    if (paymentsTableState.visible) {
-                        await loadPayments();
-                    }
-
-                    // Show success message
-                    alert(`Статус платежа: ${getStatusText(response.data.status)}`);
-                } else {
-                    throw new Error(response.data.error || "Ошибка при проверке статуса");
-                }
-
-            } catch (error) {
-                console.error('Ошибка проверки статуса:', error);
-                alert(`Ошибка при проверке статуса: ${error.response?.data?.error || error.message}`);
-            } finally {
-                hideLoading('check-status-loading');
-            }
-        }
-
-        async function confirmPayment() {
-            if (!currentPaymentId) return;
-
-            const loadingElement = document.getElementById('confirm-payment-loading');
-
-            if (!confirm("Вы уверены, что хотите подтвердить этот платеж вручную?")) {
-                return;
-            }
-
-            try {
-                showLoading('confirm-payment-loading');
-
-                const response = await axios.post(`/api/payments/${currentPaymentId}/confirm`, {
-                    adminId: 1 // Using a default admin ID for now
-                });
-
-                if (response.data.success) {
-                    // Update current data
-                    currentPaymentData.status = response.data.status;
-
-                    // Refresh the payment details
-                    showPaymentDetails(currentPaymentId);
-
-                    // Also refresh payments list if visible
-                    if (paymentsTableState.visible) {
-                        await loadPayments();
-                    }
-
-                    // Show success message
-                    alert('Платеж успешно подтвержден!');
-                } else {
-                    throw new Error(response.data.error || "Ошибка при подтверждении платежа");
-                }
-
-            } catch (error) {
-                console.error('Ошибка подтверждения платежа:', error);
-                alert(`Ошибка при подтверждении платежа: ${error.response?.data?.error || error.message}`);
-            } finally {
-                hideLoading('confirm-payment-loading');
-            }
-        }
-
-        async function cancelPayment() {
-            if (!currentPaymentId) return;
-
-            const loadingElement = document.getElementById('cancel-payment-loading');
-
-            if (!confirm("Вы уверены, что хотите отменить этот платеж?")) {
-                return;
-            }
-
-            try {
-                showLoading('cancel-payment-loading');
-
-                const response = await axios.post(`/api/payments/${currentPaymentId}/cancel`, {
-                    adminId: 1 // Using a default admin ID for now
-                });
-
-                if (response.data.success) {
-                    // Update current data
-                    currentPaymentData.status = response.data.status;
-
-                    // Refresh the payment details
-                    showPaymentDetails(currentPaymentId);
-
-                    // Also refresh payments list if visible
-                    if (paymentsTableState.visible) {
-                        await loadPayments();
-                    }
-
-                    // Show success message
-                    alert('Платеж успешно отменен!');
-                } else {
-                    throw new Error(response.data.error || "Ошибка при отмене платежа");
-                }
-
-            } catch (error) {
-                console.error('Ошибка отмены платежа:', error);
-                alert(`Ошибка при отмене платежа: ${error.response?.data?.error || error.message}`);
-            } finally {
-                hideLoading('cancel-payment-loading');
             }
         }
 
@@ -2811,32 +2341,10 @@
             element.style.display = 'none';
         }
 
-        function showAlert(elementId, message, type = 'success') {
-            const alertBox = document.getElementById(elementId);
-            if (!alertBox) {
-                console.error('Alert element not found:', elementId);
-                return;
-            }
-            alertBox.textContent = message;
-            alertBox.className = `alert alert-${type}`;
-            alertBox.style.display = 'block';
-            setTimeout(() => {
-                alertBox.style.display = 'none';
-            }, 3000);
-        }
-
-        window.addEventListener('click', e => {
-            if (e.target.classList.contains('modal')) {
-                e.target.style.display = 'none';
-            }
-        });
-        document.getElementById('add-merchant-form').addEventListener('submit', handleAddMerchant);
-
         async function loadBackups() {
             const table = document.getElementById('backups-table');
             const button = document.querySelector('#backups .btn-primary');
             const alertBox = document.getElementById('backups-alert');
-
             try {
                 if (backupsTableState.visible) {
                     table.style.display = 'none';
@@ -2844,11 +2352,9 @@
                     backupsTableState.visible = false;
                     return;
                 }
-
                 if (!backupsTableState.loaded) {
                     showLoading('backups-loading');
                     alertBox.style.display = 'none';
-
                     const response = await axios.get('/api/backups');
                     backupsTableState.data = response.data;
                     backupsTableState.loaded = true;
@@ -2873,13 +2379,11 @@
         function renderBackups(backups) {
             const tbody = document.getElementById('backups-list');
             tbody.innerHTML = '';
-
             const sortedBackups = [...backups].sort((a, b) => {
                 return backupsTableState.sortDirection === 'asc'
                     ? a.id - b.id
                     : b.id - a.id;
             });
-
             sortedBackups.forEach(backup => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -2943,7 +2447,6 @@
 
         async function deleteBackup(backupId) {
             if (!confirm(`Вы уверены, что хотите удалить бэкап #${backupId}?`)) return;
-
             try {
                 await axios.delete(`/api/backups/${backupId}`);
 
@@ -2957,34 +2460,6 @@
             }
         }
 
-
-        function exportAllToExcel() {
-            const exportUrls = [
-                '/api/export/users',
-                '/api/export/merchants',
-                '/api/export/subscriptions',
-                '/api/export/salary-days',
-                '/api/export/payments'
-            ];
-
-            // Создаём iframe для загрузки файла
-            const iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
-
-            // Последовательно грузим все URL
-            function downloadNext(index) {
-                if (index >= exportUrls.length) {
-                    alert('Все файлы успешно загружены!');
-                    return;
-                }
-                iframe.src = exportUrls[index];
-                iframe.onload = () => downloadNext(index + 1);
-            }
-
-            downloadNext(0);
-        }
-
         function formatDate(dateString) {
             const date = new Date(dateString);
             return date.toLocaleString('ru-RU', {
@@ -2996,29 +2471,296 @@
             });
         }
 
-        function exportAllWithSelection() {
-            document.getElementById('export-select-modal').style.display = 'flex';
+        async function loadPayments() {
+            const table = document.getElementById('payments-table');
+            const button = document.querySelector('#payments .btn-primary');
+            const alertBox = document.getElementById('payments-alert');
+            try {
+                if (paymentsTableState.visible) {
+                    table.style.display = 'none';
+                    button.textContent = 'Показать платежи';
+                    paymentsTableState.visible = false;
+                    return;
+                }
+                showLoading('payments-loading');
+                button.disabled = true;
+                alertBox.style.display = 'none';
+                const response = await axios.get('/api/payments');
+                appState.payments.data = response.data;
+                paymentsTableState.loaded = true;
+                allPayments = [...response.data];
+                renderPayments(response.data);
+                table.style.display = 'block';
+                button.textContent = 'Скрыть платежи';
+                paymentsTableState.visible = true;
+            } catch (error) {
+                console.error('Ошибка загрузки платежей:', error);
+                showAlert(alertBox, `Ошибка: ${error.response?.data?.error || error.message}`, 'error');
+                table.style.display = 'none';
+                button.textContent = 'Показать платежи';
+                paymentsTableState.visible = false;
+            } finally {
+                hideLoading('payments-loading');
+                button.disabled = false;
+            }
         }
 
-        function hideExportSelectModal() {
-            document.getElementById('export-select-modal').style.display = 'none';
+        function renderPayments(payments) {
+            const tbody = document.getElementById('payments-list');
+            tbody.innerHTML = '';
+            if (!payments || !Array.isArray(payments) || payments.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Платежи не найдены</td></tr>';
+                return;
+            }
+            payments.forEach(payment => {
+                const row = document.createElement('tr');
+                const createdDate = new Date(payment.created_at);
+                const formattedDate = createdDate.toLocaleString('ru-RU');
+                row.innerHTML = `
+                    <td>${payment.id}</td>
+                    <td>${payment.admin_id}</td>
+                    <td>${parseFloat(payment.amount).toFixed(2)} ₽</td>
+                    <td>
+                        <span class="badge status-${payment.status}">${getStatusText(payment.status)}</span>
+                    </td>
+                    <td>${formattedDate}</td>
+                    <td>
+                        <button class="btn btn-info" onclick="showPaymentDetails(${payment.id})">
+                            Детали
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
         }
 
-        document.getElementById('export-tables-form').addEventListener('submit', function (e) {
+        function getStatusText(status) {
+            const statusMap = {
+                'NEW': 'Новый',
+                'FORMSHOWED': 'Форма показана',
+                'AUTHORIZING': 'Авторизация',
+                'AUTHORIZED': 'Авторизовано',
+                'CONFIRMED': 'Подтверждено',
+                'COMPLETED': 'Завершено',
+                'REJECTED': 'Отклонено',
+                'REVERSED': 'Отменено',
+                'REFUNDING': 'Возврат',
+                'REFUNDED': 'Возвращено',
+                'PARTIAL_REFUNDED': 'Частичный возврат',
+                'CHECKING': 'Проверка',
+                'CANCELLED': 'Отменено вручную',
+                'DEADLINE_EXPIRED': 'Срок оплаты истёк'
+            };
+            return statusMap[status] || status;
+        }
+
+        function showCreatePaymentModal() {
+            document.getElementById('create-payment-modal').style.display = 'flex';
+            document.getElementById('payment-form-alert').style.display = 'none';
+            document.getElementById('create-payment-form').reset();
+        }
+
+        function hideCreatePaymentModal() {
+            document.getElementById('create-payment-modal').style.display = 'none';
+        }
+
+        async function handleCreatePayment(e) {
             e.preventDefault();
-            const selectedTables = Array.from(document.querySelectorAll('input[name="tables"]:checked'))
-                .map(cb => cb.value);
+            const loadingElement = document.getElementById('payment-submit-loading');
+            const alertBox = document.getElementById('payment-form-alert');
+            try {
+                showLoading('payment-submit-loading');
 
-            if (selectedTables.length === 0) {
-                alert('Выберите хотя бы одну таблицу');
+                const adminId = document.getElementById('admin-id').value.trim();
+                const amount = document.getElementById('payment-amount').value.trim();
+
+                if (!adminId || !amount) {
+                    throw new Error("Все поля обязательны для заполнения");
+                }
+
+                const amountValue = parseFloat(amount);
+                if (isNaN(amountValue) || amountValue < 10 || amountValue > 100000) {
+                    throw new Error("Сумма должна быть от 10 до 100 000 рублей");
+                }
+
+                const response = await axios.post('/api/payments', {
+                    adminId: adminId,
+                    amount: amountValue
+                });
+
+                if (response.data.success) {
+                    alertBox.textContent = 'Платеж успешно создан';
+                    alertBox.className = 'alert alert-success';
+                    alertBox.style.display = 'block';
+
+                    if (response.data.paymentUrl) {
+                        window.open(response.data.paymentUrl, '_blank');
+                    }
+
+                    setTimeout(() => {
+                        hideCreatePaymentModal();
+                        loadPayments();
+                    }, 1500);
+                } else {
+                    throw new Error(response.data.error || "Ошибка при создании платежа");
+                }
+            } catch (error) {
+                console.error('Ошибка создания платежа:', error);
+                alertBox.textContent = `Ошибка: ${error.response?.data?.error || error.message}`;
+                alertBox.className = 'alert alert-error';
+                alertBox.style.display = 'block';
+            } finally {
+                hideLoading('payment-submit-loading');
+            }
+        }
+
+        async function showPaymentDetails(paymentId) {
+            try {
+                let paymentData = appState.payments.data.find(p => p.id === paymentId);
+                if (!paymentData) {
+                    const response = await axios.get(`/api/payments/${paymentId}/status`);
+                    paymentData = response.data;
+                }
+                currentPaymentId = paymentId;
+                currentPaymentData = paymentData;
+
+                const contentDiv = document.getElementById('payment-details-content');
+                let statusHtml = '';
+                if (paymentData.tinkoffStatus) {
+                    statusHtml = `<p><strong>Статус в Tinkoff:</strong> <span class="badge status-${paymentData.tinkoffStatus}">${getStatusText(paymentData.tinkoffStatus)}</span></p>`;
+                }
+                contentDiv.innerHTML = `
+                    <div class="payment-details">
+                        <p><strong>ID платежа:</strong> ${paymentData.id}</p>
+                        <p><strong>ID администратора:</strong> ${paymentData.admin_id}</p>
+                        <p><strong>Сумма:</strong> ${parseFloat(paymentData.amount).toFixed(2)} ₽</p>
+                        <p><strong>Статус:</strong> <span class="badge status-${paymentData.status}">${getStatusText(paymentData.status)}</span></p>
+                        ${statusHtml}
+                        <p><strong>Дата создания:</strong> ${new Date(paymentData.created_at).toLocaleString('ru-RU')}</p>
+                        ${paymentData.updated_at ? `<p><strong>Дата обновления:</strong> ${new Date(paymentData.updated_at).toLocaleString('ru-RU')}</p>` : ''}
+                        ${paymentData.tinkoff_payment_id ? `<p><strong>ID платежа в Tinkoff:</strong> ${paymentData.tinkoff_payment_id}</p>` : ''}
+                        ${paymentData.payment_url ? `<p><strong>Ссылка на оплату:</strong> <a href="${paymentData.payment_url}" target="_blank">${paymentData.payment_url}</a></p>` : ''}
+                    </div>
+                `;
+
+                const confirmBtn = document.getElementById('confirm-payment-btn');
+                const cancelBtn = document.getElementById('cancel-payment-btn');
+                const canConfirm = ['NEW', 'FORMSHOWED', 'AUTHORIZING', 'AUTHORIZED'].includes(paymentData.status);
+                confirmBtn.style.display = canConfirm ? 'inline-block' : 'none';
+
+                const canCancel = !['CANCELLED', 'REJECTED', 'REVERSED', 'REFUNDED', 'COMPLETED'].includes(paymentData.status);
+                cancelBtn.style.display = canCancel ? 'inline-block' : 'none';
+
+                document.getElementById('payment-details-modal').style.display = 'flex';
+            } catch (error) {
+                console.error('Ошибка получения данных платежа:', error);
+                alert(`Ошибка при получении данных платежа: ${error.response?.data?.error || error.message}`);
+            }
+        }
+
+        function hidePaymentDetailsModal() {
+            document.getElementById('payment-details-modal').style.display = 'none';
+            currentPaymentId = null;
+            currentPaymentData = null;
+        }
+
+        async function checkPaymentStatus() {
+            if (!currentPaymentId) return;
+            const loadingElement = document.getElementById('check-status-loading');
+            try {
+                showLoading('check-status-loading');
+                const response = await axios.get(`/api/payments/${currentPaymentId}/status`);
+
+                if (response.data.success) {
+                    currentPaymentData = response.data;
+                    showPaymentDetails(currentPaymentId);
+                    if (paymentsTableState.visible) {
+                        await loadPayments();
+                    }
+                    alert(`Статус платежа: ${getStatusText(response.data.status)}`);
+                } else {
+                    throw new Error(response.data.error || "Ошибка при проверке статуса");
+                }
+            } catch (error) {
+                console.error('Ошибка проверки статуса:', error);
+                alert(`Ошибка при проверке статуса: ${error.response?.data?.error || error.message}`);
+            } finally {
+                hideLoading('check-status-loading');
+            }
+        }
+
+        async function confirmPayment() {
+            if (!currentPaymentId) return;
+            const loadingElement = document.getElementById('confirm-payment-loading');
+            if (!confirm("Вы уверены, что хотите подтвердить этот платеж вручную?")) {
+                return;
+            }
+            try {
+                showLoading('confirm-payment-loading');
+                const response = await axios.post(`/api/payments/${currentPaymentId}/confirm`, {
+                    adminId: 1
+                });
+
+                if (response.data.success) {
+                    currentPaymentData.status = response.data.status;
+                    showPaymentDetails(currentPaymentId);
+                    if (paymentsTableState.visible) {
+                        await loadPayments();
+                    }
+                    alert('Платеж успешно подтвержден!');
+                } else {
+                    throw new Error(response.data.error || "Ошибка при подтверждении платежа");
+                }
+            } catch (error) {
+                console.error('Ошибка подтверждения платежа:', error);
+                alert(`Ошибка при подтверждении платежа: ${error.response?.data?.error || error.message}`);
+            } finally {
+                hideLoading('confirm-payment-loading');
+            }
+        }
+
+        async function cancelPayment() {
+            if (!currentPaymentId) return;
+            const loadingElement = document.getElementById('cancel-payment-loading');
+
+            if (!confirm("Вы уверены, что хотите отменить этот платеж?")) {
                 return;
             }
 
-            // Формируем URL с параметром tables
-            const url = `/api/export/all?tables=${encodeURIComponent(selectedTables.join(','))}`;
-            window.open(url);
-            hideExportSelectModal();
-        });
+            try {
+                showLoading('cancel-payment-loading');
+                const response = await axios.post(`/api/payments/${currentPaymentId}/cancel`, {
+                    adminId: 1
+                });
+                if (response.data.success) {
+                    currentPaymentData.status = response.data.status;
+                    showPaymentDetails(currentPaymentId);
+                    if (paymentsTableState.visible) {
+                        await loadPayments();
+                    }
+                    alert('Платеж успешно отменен!');
+                } else {
+                    throw new Error(response.data.error || "Ошибка при отмене платежа");
+                }
+            } catch (error) {
+                console.error('Ошибка отмены платежа:', error);
+                alert(`Ошибка при отмене платежа: ${error.response?.data?.error || error.message}`);
+            } finally {
+                hideLoading('cancel-payment-loading');
+            }
+        }
+
+        function filterPaymentsByStatus() {
+            const selectedStatus = document.getElementById('payment-status-filter').value;
+            let filteredPayments;
+
+            if (selectedStatus) {
+                filteredPayments = allPayments.filter(p => p.status === selectedStatus);
+            } else {
+                filteredPayments = [...allPayments];
+            }
+            renderPayments(filteredPayments);
+        }
 
         function formatFileSize(bytes) {
             if (bytes === 0) return '0 Bytes';
@@ -3027,6 +2769,35 @@
             const i = Math.floor(Math.log(bytes) / Math.log(k));
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
+
+        function showAlert(elementId, message, type = 'success') {
+            const alertBox = document.getElementById(elementId);
+            if (!alertBox) {
+                console.error('Alert element not found:', elementId);
+                return;
+            }
+            alertBox.textContent = message;
+            alertBox.className = `alert alert-${type}`;
+            alertBox.style.display = 'block';
+            setTimeout(() => {
+                alertBox.style.display = 'none';
+            }, 3000);
+        }
+
+        window.addEventListener('click', function (e) {
+            if (e.target.classList.contains('modal')) {
+                const modalId = e.target.id;
+                if (modalId === 'edit-merchant-modal') {
+                    hideEditMerchantModal();
+                } else if (modalId === 'add-subscription-modal') {
+                    hideAddSubscriptionModal();
+                } else if (modalId === 'confirm-delete-modal') {
+                    hideDeleteModal();
+                } else {
+                    e.target.style.display = 'none';
+                }
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('create-backup-form');

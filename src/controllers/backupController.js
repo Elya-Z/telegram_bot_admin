@@ -3,12 +3,11 @@ const path = require('path');
 const { spawn } = require('child_process');
 const pool = require('../config/db');
 const backupRepository = require('../repositories/backupRepository');
-
 const backupDir = path.join(__dirname, '../../backups');
+
 if (!fs.existsSync(backupDir)) {
     fs.mkdirSync(backupDir, { recursive: true });
 }
-
 
 class BackupController {
     async getBackups(req, res) {
@@ -26,7 +25,6 @@ class BackupController {
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         const filename = `backup-${timestamp}.sql`;
         const filePath = path.join(backupDir, filename);
-
         const { DB_USER, DB_PASSWORD, DB_HOST, DB_NAME } = process.env;
 
         try {
@@ -84,7 +82,6 @@ class BackupController {
     async downloadBackup(req, res) {
         try {
             const { filename } = req.params;
-
             if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
                 return res.status(400).json({ error: 'Недопустимое имя файла' });
             }
@@ -97,7 +94,6 @@ class BackupController {
 
             res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
             res.setHeader('Content-Type', 'application/octet-stream');
-
             const fileStream = fs.createReadStream(filePath);
             fileStream.pipe(res);
         } catch (error) {
@@ -108,7 +104,6 @@ class BackupController {
 
     async deleteBackup(req, res) {
         const { id } = req.params;
-
         try {
             const selectQuery = 'SELECT filename FROM test.backups WHERE id = $1';
             const selectResult = await pool.query(selectQuery, [id]);

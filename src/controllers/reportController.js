@@ -18,12 +18,14 @@ exports.generateUserReportExcel = async (req, res) => {
         const totalBalance = result.rows.reduce((sum, user) => sum + parseFloat(user.balance), 0);
         const averageBalance = totalBalance / totalUsers;
 
-        const users = result.rows.map(u => ({
-            ID: u.id,
-            Баланс: parseFloat(u.balance),
-            ICE: parseFloat(u.ice),
-            Статус: u.status === 1 ? 'Активен' : 'Заблокирован'
-        }));
+        const users = result.rows
+            .sort((a, b) => a.id - b.id)
+            .map(u => ({
+                ID: u.id,
+                Баланс: parseFloat(u.balance),
+                ICE: parseFloat(u.ice),
+                Статус: u.status === 1 ? 'Активен' : 'Заблокирован'
+            }));
 
         const summary = [
             ['Метрика', 'Значение'],

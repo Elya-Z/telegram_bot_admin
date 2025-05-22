@@ -8,12 +8,14 @@ exports.exportUsersToExcel = async (req, res) => {
             FROM test.users
         `);
 
-        const users = result.rows.map(u => ({
-            ID: u.id,
-            Баланс: parseFloat(u.balance),
-            Ice: parseFloat(u.ice),
-            Статус: u.status === 1 ? 'Активен' : 'Заблокирован'
-        }));
+        const users = result.rows
+            .sort((a, b) => a.id - b.id)
+            .map(u => ({
+                ID: u.id,
+                Баланс: parseFloat(u.balance),
+                Ice: parseFloat(u.ice),
+                Статус: u.status === 1 ? 'Активен' : 'Заблокирован'
+            }));
 
         const worksheet = XLSX.utils.json_to_sheet(users);
         const workbook = XLSX.utils.book_new();

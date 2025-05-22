@@ -31,6 +31,46 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
+-- Name: admin_transactions; Type: TABLE; Schema: test; Owner: postgres
+--
+
+CREATE TABLE test.admin_transactions (
+    id integer NOT NULL,
+    admin_id bigint NOT NULL,
+    amount numeric(12,2) NOT NULL,
+    tinkoff_payment_id character varying(50),
+    payment_url character varying(255),
+    status character varying(50) DEFAULT 'NEW'::character varying NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+ALTER TABLE test.admin_transactions OWNER TO postgres;
+
+--
+-- Name: admin_transactions_id_seq; Type: SEQUENCE; Schema: test; Owner: postgres
+--
+
+CREATE SEQUENCE test.admin_transactions_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE test.admin_transactions_id_seq OWNER TO postgres;
+
+--
+-- Name: admin_transactions_id_seq; Type: SEQUENCE OWNED BY; Schema: test; Owner: postgres
+--
+
+ALTER SEQUENCE test.admin_transactions_id_seq OWNED BY test.admin_transactions.id;
+
+
+--
 -- Name: backups; Type: TABLE; Schema: test; Owner: postgres
 --
 
@@ -416,6 +456,13 @@ ALTER SEQUENCE test.users_id_seq OWNED BY test.users.id;
 
 
 --
+-- Name: admin_transactions id; Type: DEFAULT; Schema: test; Owner: postgres
+--
+
+ALTER TABLE ONLY test.admin_transactions ALTER COLUMN id SET DEFAULT nextval('test.admin_transactions_id_seq'::regclass);
+
+
+--
 -- Name: backups id; Type: DEFAULT; Schema: test; Owner: postgres
 --
 
@@ -458,12 +505,22 @@ ALTER TABLE ONLY test.users ALTER COLUMN id SET DEFAULT nextval('test.users_id_s
 
 
 --
+-- Data for Name: admin_transactions; Type: TABLE DATA; Schema: test; Owner: postgres
+--
+
+COPY test.admin_transactions (id, admin_id, amount, tinkoff_payment_id, payment_url, status, created_at, updated_at) FROM stdin;
+1	1	200.00	\N	\N	CANCELLED	2025-05-19 20:59:03.322673	2025-05-19 21:10:18.572984
+2	1	200.00	6391396032	https://securepayments.tinkoff.ru/ldIcR0Zo	CONFIRMED	2025-05-19 21:10:49.855327	2025-05-19 21:12:52.661823
+3	2	400.00	6397648904	https://securepayments.tinkoff.ru/YB3GTPV8	NEW	2025-05-20 23:20:36.589072	2025-05-20 23:20:37.294048
+\.
+
+
+--
 -- Data for Name: backups; Type: TABLE DATA; Schema: test; Owner: postgres
 --
 
 COPY test.backups (id, filename, created_at, size, description) FROM stdin;
-2	backup-2025-05-17T13-27-41-490Z.sql	2025-05-17 16:27:41.745948	0	lalla
-3	backup-2025-05-17T13-53-09-765Z.sql	2025-05-17 16:53:09.850821	0	lalla33
+4	backup-2025-05-17T14-41-58-995Z.sql	2025-05-17 17:41:59.471861	15465	уцу
 \.
 
 
@@ -527,7 +584,7 @@ COPY test.salary (id, salary_day, salary_props) FROM stdin;
 2	2	{}
 3	10	{}
 4	25	{}
-1	26	{}
+1	24	{}
 \.
 
 
@@ -546,7 +603,7 @@ COPY test.status (status_id, status_name) FROM stdin;
 COPY test.sub (id, sub_id, name, description, price, channels, collaboration, visible) FROM stdin;
 2	2	Подписка Премиум	\N	{"month": 100, "year": 1000}	["channel3", "channel4"]	{}	t
 3	3	Подписка VIP	\N	{"month": 200, "year": 2000}	["channel5", "channel6"]	{}	t
-1	1	Подписка Базовая	\N	{"month":50,"year":500}	["channel1", "channel2"]	{}	t
+1	1	Подписка Базовая	\N	{"month":5000,"year":50000}	["channel1", "channel2"]	{}	t
 \.
 
 
@@ -579,20 +636,23 @@ COPY test.tpay_transactions (id, tpay_id, amount, tpay_when, status, recurrent_t
 --
 
 COPY test.users (id, balance, ice, notification, status, game_exp, auto_deposit) FROM stdin;
-1	16.00	15.00	{}	0	0	\N
-2	16.00	14.00	{}	0	0	\N
-10	100.00	50.00	{}	0	1000	true
-13	300.00	80.00	{}	1	3000	false
-11	201.00	75.00	{}	1	2000	false
-12	150.00	60.00	{}	0	1500	true
+2	15.00	14.00	{}	1	0	\N
+1	17.00	15.00	{}	0	0	\N
 \.
+
+
+--
+-- Name: admin_transactions_id_seq; Type: SEQUENCE SET; Schema: test; Owner: postgres
+--
+
+SELECT pg_catalog.setval('test.admin_transactions_id_seq', 3, true);
 
 
 --
 -- Name: backups_id_seq; Type: SEQUENCE SET; Schema: test; Owner: postgres
 --
 
-SELECT pg_catalog.setval('test.backups_id_seq', 3, true);
+SELECT pg_catalog.setval('test.backups_id_seq', 8, true);
 
 
 --
@@ -613,7 +673,7 @@ SELECT pg_catalog.setval('test.gift_pool_gift_id_seq', 1, false);
 -- Name: merchant_id_seq; Type: SEQUENCE SET; Schema: test; Owner: postgres
 --
 
-SELECT pg_catalog.setval('test.merchant_id_seq', 7, true);
+SELECT pg_catalog.setval('test.merchant_id_seq', 19, true);
 
 
 --
@@ -627,14 +687,14 @@ SELECT pg_catalog.setval('test.status_id_seq', 1, false);
 -- Name: sub_id_seq; Type: SEQUENCE SET; Schema: test; Owner: postgres
 --
 
-SELECT pg_catalog.setval('test.sub_id_seq', 6, true);
+SELECT pg_catalog.setval('test.sub_id_seq', 8, true);
 
 
 --
 -- Name: sub_sub_id_seq; Type: SEQUENCE SET; Schema: test; Owner: postgres
 --
 
-SELECT pg_catalog.setval('test.sub_sub_id_seq', 6, true);
+SELECT pg_catalog.setval('test.sub_sub_id_seq', 8, true);
 
 
 --
@@ -649,6 +709,14 @@ SELECT pg_catalog.setval('test.tpay_transactions_tpay_id_seq', 1, false);
 --
 
 SELECT pg_catalog.setval('test.users_id_seq', 13, true);
+
+
+--
+-- Name: admin_transactions admin_transactions_pkey; Type: CONSTRAINT; Schema: test; Owner: postgres
+--
+
+ALTER TABLE ONLY test.admin_transactions
+    ADD CONSTRAINT admin_transactions_pkey PRIMARY KEY (id);
 
 
 --
@@ -673,6 +741,27 @@ ALTER TABLE ONLY test.merchant
 
 ALTER TABLE ONLY test.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: idx_admin_transactions_admin_id; Type: INDEX; Schema: test; Owner: postgres
+--
+
+CREATE INDEX idx_admin_transactions_admin_id ON test.admin_transactions USING btree (admin_id);
+
+
+--
+-- Name: idx_admin_transactions_created_at; Type: INDEX; Schema: test; Owner: postgres
+--
+
+CREATE INDEX idx_admin_transactions_created_at ON test.admin_transactions USING btree (created_at);
+
+
+--
+-- Name: idx_admin_transactions_status; Type: INDEX; Schema: test; Owner: postgres
+--
+
+CREATE INDEX idx_admin_transactions_status ON test.admin_transactions USING btree (status);
 
 
 --
