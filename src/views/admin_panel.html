@@ -753,6 +753,9 @@
 
 <body>
     <div class="container">
+        <button class="btn btn-export" onclick="exportAllWithSelection()"><i class="fas fa-file-excel"></i>
+            Экспортировать
+            всё</button>
         <h1>Административная панель Telegram бота</h1>
 
         <div class="tabs">
@@ -762,6 +765,7 @@
             <button class="tab-btn" data-tab="salary">Зарплатные дни</button>
             <button class="tab-btn" data-tab="backups">Бэкапы</button>
             <button class="tab-btn" data-tab="payments">Платежи</button>
+
         </div>
 
         <div id="users" class="tab-content active">
@@ -839,7 +843,9 @@
                     <span id="subscriptions-loading" class="loading" style="display: none;"></span>
                     Показать подписки
                 </button>
-                <button class="btn btn-success" onclick="showAddSubscriptionModal()">Добавить подписку</button>
+                <button class="btn btn-success" onclick="showAddSubscriptionModal()"><i
+                        class="fas fa-plus-circle"></i>Добавить
+                    подписку</button>
                 <button class="btn btn-export" onclick="exportSubscriptions()"><i class="fas fa-file-excel"></i>
                     Экспортировать
                     в Excel</button>
@@ -902,7 +908,9 @@
                     <span id="backups-loading" class="loading" style="display: none;"></span>
                     Показать бэкапы
                 </button>
-                <button class="btn btn-success" onclick="showCreateBackupModal()">Создать бэкап</button>
+                <button class="btn btn-success" onclick="showCreateBackupModal()"><i
+                        class="fas fa-plus-circle"></i>Создать
+                    бэкап</button>
             </div>
 
             <div id="backups-alert" class="alert"></div>
@@ -930,7 +938,12 @@
                     <span id="payments-loading" class="loading" style="display: none;"></span>
                     Показать платежи
                 </button>
-                <button class="btn btn-success" onclick="showCreatePaymentModal()">Создать платеж</button>
+                <button class="btn btn-success" onclick="showCreatePaymentModal()"><i
+                        class="fas fa-plus-circle"></i>Создать
+                    платеж</button>
+                <button class="btn btn-export" onclick="exportPayments()"><i class="fas fa-file-excel"></i>
+                    Экспортировать в
+                    Excel</button>
             </div>
 
             <div id="payments-alert" class="alert"></div>
@@ -1072,6 +1085,21 @@
         </div>
     </div>
 
+    <div id="export-select-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="hideExportSelectModal()">&times;</span>
+            <h2>Выберите данные для экспорта</h2>
+            <form id="export-tables-form">
+                <label><input type="checkbox" name="tables" value="users" checked> Пользователи</label><br>
+                <label><input type="checkbox" name="tables" value="merchants" checked> Мерчанты</label><br>
+                <label><input type="checkbox" name="tables" value="subscriptions" checked> Подписки</label><br>
+                <label><input type="checkbox" name="tables" value="salary-days" checked> Зарплатные дни</label><br>
+                <label><input type="checkbox" name="tables" value="payments" checked> Платежи</label><br><br>
+                <button type="submit" class="btn btn-primary">Экспортировать</button>
+                <button type="button" class="btn btn-secondary" onclick="hideExportSelectModal()">Отмена</button>
+            </form>
+        </div>
+    </div>
 
     <div id="create-payment-modal" class="modal">
         <div class="modal-content">
@@ -1160,6 +1188,10 @@
 
         function exportSalaryDays() {
             window.open('/api/export/salary-days');
+        }
+
+        function exportPayments() {
+            window.open('/api/export/payments');
         }
 
         const userTableState = {
@@ -1984,7 +2016,7 @@
                         <strong>Годовая:</strong> ${priceData.year} RUB
                     </td>
                     <td>
-                        <button class="btn btn-info" onclick="showEditSubscriptionModal(${subId})">
+                        <button class="btn btn-balance" onclick="showEditSubscriptionModal(${subId})">
                             Изменить цены
                         </button>
                         <button class="btn btn-danger" onclick="showDeleteModal(${subId}, '${sub.name.replace(/'/g, "\\'")}')">
@@ -2925,6 +2957,34 @@
             }
         }
 
+
+        function exportAllToExcel() {
+            const exportUrls = [
+                '/api/export/users',
+                '/api/export/merchants',
+                '/api/export/subscriptions',
+                '/api/export/salary-days',
+                '/api/export/payments'
+            ];
+
+            // Создаём iframe для загрузки файла
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+
+            // Последовательно грузим все URL
+            function downloadNext(index) {
+                if (index >= exportUrls.length) {
+                    alert('Все файлы успешно загружены!');
+                    return;
+                }
+                iframe.src = exportUrls[index];
+                iframe.onload = () => downloadNext(index + 1);
+            }
+
+            downloadNext(0);
+        }
+
         function formatDate(dateString) {
             const date = new Date(dateString);
             return date.toLocaleString('ru-RU', {
@@ -2935,6 +2995,30 @@
                 minute: '2-digit'
             });
         }
+
+        function exportAllWithSelection() {
+            document.getElementById('export-select-modal').style.display = 'flex';
+        }
+
+        function hideExportSelectModal() {
+            document.getElementById('export-select-modal').style.display = 'none';
+        }
+
+        document.getElementById('export-tables-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const selectedTables = Array.from(document.querySelectorAll('input[name="tables"]:checked'))
+                .map(cb => cb.value);
+
+            if (selectedTables.length === 0) {
+                alert('Выберите хотя бы одну таблицу');
+                return;
+            }
+
+            // Формируем URL с параметром tables
+            const url = `/api/export/all?tables=${encodeURIComponent(selectedTables.join(','))}`;
+            window.open(url);
+            hideExportSelectModal();
+        });
 
         function formatFileSize(bytes) {
             if (bytes === 0) return '0 Bytes';
